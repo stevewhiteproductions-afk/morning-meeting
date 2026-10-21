@@ -224,6 +224,11 @@ body.has-tray #trayBtn{display:inline-flex}
 #linkEd .btn.on{background:var(--accent);color:var(--accent-ink)}
 #linkEd .le-del{padding:0;color:#b33}
 #linkEd footer{display:flex;gap:10px;padding:12px 22px;border-top:1px solid #eee}
+#linkEd .help-body{overflow:auto;padding:14px 22px 6px;display:grid;grid-template-columns:1fr 1fr;gap:6px 26px;touch-action:pan-y;font:15px/1.45 system-ui;color:#333}
+#linkEd .help-body h3{margin:10px 0 4px;font:700 16px system-ui;color:#1d2330}
+#linkEd .help-body ul{margin:0;padding-left:18px}
+#linkEd .help-body li{margin:3px 0}
+@media (max-width:700px){#linkEd .help-body{grid-template-columns:1fr}}
 #linkEd .le-tabs{display:flex;gap:6px;margin-top:10px}
 #linkEd .le-tab{appearance:none;border:0;background:#eef0f5;color:#333;font:600 15px system-ui;padding:9px 16px;border-radius:10px;cursor:pointer;touch-action:manipulation}
 #linkEd .le-tab.on{background:#1d2330;color:#fff}
@@ -659,16 +664,44 @@ function openLinkEditor() {
   const data = JSON.parse(JSON.stringify(linkGroups()));
   const ov = document.createElement('div'); ov.id = 'linkEd';
   ov.innerHTML = `<div class="le-panel"><header><h2>Settings</h2>
-      <div class="le-tabs"><button class="le-tab on" data-t="links">Links</button><button class="le-tab" data-t="bg">Good Morning background</button></div></header>
+      <div class="le-tabs"><button class="le-tab on" data-t="links">Links</button><button class="le-tab" data-t="bg">Good Morning background</button><button class="le-tab" data-t="help">Help</button></div></header>
     <div class="le-pane" data-p="links"><p class="le-hint">Edit names and web addresses, add or remove links.</p><div class="le-body"></div>
       <footer><button class="btn le-reset">Restore original links</button><span style="flex:1"></span><button class="btn le-cancel">Cancel</button><button class="btn on le-save">Save</button></footer></div>
     <div class="le-pane" data-p="bg" hidden><p class="le-hint">Pick a background for the Good Morning slide, or use your own picture. It changes right away.</p><div class="bg-body"></div>
-      <footer><span style="flex:1"></span><button class="btn on le-done">Done</button></footer></div></div>`;
+      <footer><span style="flex:1"></span><button class="btn on le-done">Done</button></footer></div>
+    <div class="le-pane" data-p="help" hidden><div class="help-body">
+      <section><h3>Moving around</h3><ul>
+        <li><b>Next / previous slide:</b> the arrow buttons in the bottom bar, the keyboard arrow keys, or a <b>right mouse click</b> (one slide per click).</li>
+        <li><b>Jump to any slide:</b> the grid button at the far left of the bottom bar shows every slide. Tap one to go there.</li></ul></section>
+      <section><h3>Kiosk mode</h3><ul>
+        <li>Tap the <b>full-screen button</b> at the far right of the bottom bar. The app fills the screen and the board won't go to sleep.</li>
+        <li>The bottom bar stays visible so you can still change slides and use the tools.</li>
+        <li><b>To leave kiosk mode:</b> press and <b>hold the small door button</b> in the top-left corner for about 1½ seconds. (A quick tap does nothing, so kids can't exit by accident.) Pressing Esc on a keyboard also leaves.</li></ul></section>
+      <section><h3>Moving pieces</h3><ul>
+        <li>Drag any picture, number or card with a finger. Several kids can drag at once.</li>
+        <li>Many pieces <b>snap into place</b>: calendar counters, ten-frame dots, day cards, weather cards, place-value blocks.</li>
+        <li>The <b>Move</b> button (four arrows) locks or unlocks dragging. <b>Reset</b> (circular arrow) puts the current slide back to the start.</li>
+        <li>Most slides remember where pieces were left on this board.</li></ul></section>
+      <section><h3>Drawing</h3><ul>
+        <li>On writing slides tap the <b>pencil</b> button. Colors, three brush sizes, eraser, undo, redo and clear appear in the bottom bar.</li>
+        <li>Letter of the Day: write the letter in the “letter” box; after a second it shows two pictures for that letter. Clear the box to start over.</li>
+        <li>While drawing is on, pieces can't be dragged. Tap the pencil again to go back to moving.</li></ul></section>
+      <section><h3>Tap-to-pick slides</h3><ul>
+        <li>Feelings, Weather Report Feelings and the emoji slide: tap a card or emoji to make it big and glowing; tap again to undo.</li>
+        <li>Feelings Thermometer: slide the round handle along the line to light up a face.</li></ul></section>
+      <section><h3>Calendar &amp; date</h3><ul>
+        <li>The Good Morning slide and the calendar use the board's clock and update on their own, even at midnight.</li>
+        <li>Days before today already have their counter; drag today's counter from the Tools box into its day.</li></ul></section>
+      <section><h3>Settings</h3><ul>
+        <li>Open Settings with the gear on the <b>Links</b> slide (slide 2).</li>
+        <li><b>Links:</b> rename, add or remove link buttons. <b>Good Morning background:</b> pick a theme or use your own picture.</li>
+        <li>Settings are saved on this board's browser only.</li></ul></section>
+    </div><footer><span style="flex:1"></span><button class="btn on le-done">Done</button></footer></div></div>`;
   ov.querySelectorAll('.le-tab').forEach(t => t.onclick = () => {
     ov.querySelectorAll('.le-tab').forEach(x => x.classList.toggle('on', x === t));
     ov.querySelectorAll('.le-pane').forEach(pn => pn.hidden = pn.dataset.p !== t.dataset.t);
   });
-  ov.querySelector('.le-done').onclick = () => ov.remove();
+  ov.querySelectorAll('.le-done').forEach(b => b.onclick = () => ov.remove());
   buildBgPicker(ov.querySelector('.bg-body'));
   const body = ov.querySelector('.le-body');
   const draw = () => {
@@ -1554,7 +1587,10 @@ async function exitKiosk() {
   setTimeout(fit, 60);
 }
 $('kioskBtn').onclick = enterKiosk;
-document.addEventListener('fullscreenchange', () => setTimeout(fit, 60));
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement && document.body.classList.contains('kiosk')) exitKiosk();   // left full screen some other way (Esc etc.)
+  setTimeout(fit, 60);
+});
 document.addEventListener('visibilitychange', async () => {
   if (document.visibilityState === 'visible' && document.body.classList.contains('kiosk') && 'wakeLock' in navigator) {
     try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
