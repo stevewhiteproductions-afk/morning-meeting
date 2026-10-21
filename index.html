@@ -144,6 +144,7 @@ body.has-tray #trayBtn{display:inline-flex}
 /* spotlight */
 #spot{position:absolute;inset:0;z-index:5500;background:rgba(255,255,255,.55);backdrop-filter:grayscale(.85) blur(5px);-webkit-backdrop-filter:grayscale(.85) blur(5px);animation:spotIn .28s ease both}
 #spot.out{animation:spotOut .28s ease both}
+#spot.clear{background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
 @keyframes spotIn{from{opacity:0}to{opacity:1}}
 @keyframes spotOut{from{opacity:1}to{opacity:0}}
 .el.spot-anim{transition:translate .38s cubic-bezier(.2,1.15,.35,1),scale .38s cubic-bezier(.2,1.15,.35,1)}
@@ -229,6 +230,34 @@ body.has-tray #trayBtn{display:inline-flex}
 #linkEd .help-body ul{margin:0;padding-left:18px}
 #linkEd .help-body li{margin:3px 0}
 @media (max-width:700px){#linkEd .help-body{grid-template-columns:1fr}}
+#linkEd .teach-body{padding:12px 22px;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:auto;touch-action:pan-y}
+#linkEd .teach-note{color:#777;font:14px system-ui;align-self:center}
+#linkEd .tc-top{display:flex;flex-direction:column;gap:8px}
+#linkEd .tc-mode{display:flex;gap:6px}
+#linkEd .tc-az{display:grid;grid-template-columns:repeat(13,1fr);gap:4px}
+#linkEd .tc-l{appearance:none;border:2px solid transparent;border-radius:8px;background:#f1f2f6;height:40px;cursor:pointer;position:relative;touch-action:manipulation;font:700 17px system-ui;color:#333}
+#linkEd .tc-l i{position:absolute;right:3px;top:1px;font:700 10px system-ui;color:#2a8a4a;font-style:normal}
+#linkEd .tc-l.has{background:#e6f6ea}
+#linkEd .tc-l.on{border-color:var(--accent);background:#fff6dc}
+#linkEd .tc-main{display:flex;gap:14px;min-height:0}
+#linkEd .tc-padwrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+#linkEd .tc-prompt{font:600 20px system-ui;color:#333}
+#linkEd .tc-prompt b{font:800 28px system-ui;color:#1d2330;padding:0 4px}
+#linkEd .tc-pad{height:min(calc(100vh - 430px), 52vw);min-height:200px;width:auto;max-width:100%;aspect-ratio:3/2;align-self:flex-start;border:3px solid #cfd3de;border-radius:14px;background:#fff;touch-action:none;cursor:crosshair}
+#linkEd .tc-read{min-height:22px;font:15px system-ui;color:#555}
+#linkEd .tc-read.ok{color:#2a8a4a}
+#linkEd .tc-read.no{color:#b5531c}
+#linkEd .tc-side{width:200px;flex:none;display:flex;flex-direction:column;gap:8px}
+#linkEd .tc-side > .btn{height:46px;font-size:16px}
+#linkEd .tc-side .btn:disabled{opacity:.45}
+#linkEd .tc-case{display:flex;gap:4px}
+#linkEd .tc-case .btn{flex:1;padding:0 6px;font-size:13px}
+#linkEd .tc-exh{font:600 13px system-ui;color:#555;margin-top:6px}
+#linkEd .tc-ex{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+#linkEd .tc-g{position:relative;background:#f6f7fa;border-radius:8px;aspect-ratio:1}
+#linkEd .tc-g svg{width:100%;height:100%}
+#linkEd .tc-g button{position:absolute;right:2px;top:2px;width:22px;height:22px;border:0;border-radius:50%;background:#fff;color:#b33;font-size:12px;cursor:pointer;padding:0}
+@media (max-width:760px){#linkEd .tc-main{flex-direction:column}#linkEd .tc-side{width:auto}#linkEd .tc-az{grid-template-columns:repeat(9,1fr)}}
 #linkEd .le-tabs{display:flex;gap:6px;margin-top:10px}
 #linkEd .le-tab{appearance:none;border:0;background:#eef0f5;color:#333;font:600 15px system-ui;padding:9px 16px;border-radius:10px;cursor:pointer;touch-action:manipulation}
 #linkEd .le-tab.on{background:#1d2330;color:#fff}
@@ -246,6 +275,14 @@ body.has-tray #trayBtn{display:inline-flex}
 #linkEd .bg-drop.over{border-color:var(--accent);background:#fff6dc}
 @media (max-width:700px){#linkEd .le-body{grid-template-columns:1fr}}
 .el .txt a.lk.menu-lbl{font:400 19pt 'Francois One','Arial Narrow',Arial,sans-serif;color:#3b2600;text-decoration:none;letter-spacing:1.5pt;text-shadow:0 1pt 0 rgba(255,255,255,.55)}
+.md-hot{position:absolute;z-index:900;cursor:pointer;border-radius:4pt;touch-action:manipulation}
+.md-hot:active{background:rgba(255,255,255,.25)}
+.md-big{position:absolute;z-index:6000;border-radius:3pt;cursor:pointer;transition:translate .4s cubic-bezier(.2,1.15,.35,1),scale .4s cubic-bezier(.2,1.15,.35,1),box-shadow .3s}
+.md-big.up{box-shadow:0 0 0 2pt #fff,0 12pt 30pt rgba(0,0,0,.35)}
+.el .lid{position:absolute;border-radius:50%;background:var(--c);transform:scaleY(0);transform-origin:50% 0;pointer-events:none;
+  border-bottom:2pt solid rgba(0,0,0,.45);box-sizing:border-box}
+.el .lid.blink{animation:blink .28s ease-in-out}
+@keyframes blink{0%{transform:scaleY(0)}35%,60%{transform:scaleY(1)}100%{transform:scaleY(0)}}
 #toast{position:fixed;left:50%;bottom:calc(var(--bar-h) + 16px);transform:translateX(-50%);background:#000c;color:#fff;
   padding:10px 16px;border-radius:10px;font:600 15px system-ui;opacity:0;transition:opacity .25s;z-index:90;pointer-events:none}
 #toast.show{opacity:1}
@@ -393,6 +430,62 @@ function dayTick() {
 setInterval(dayTick, 30000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') dayTick(); });
 SLIDES[13] = { draw: true };
+/* Dress-up animals (deck 34-43): eyelids that blink every 2-5 seconds */
+const LIDS = {"34":{"k":2,"eyes":[{"x":198,"y":310,"w":40.6,"h":40.6,"c":"#ffc5a2"},{"x":271,"y":300,"w":40.6,"h":40.6,"c":"#ffc5a2"}]},"35":{"k":4,"eyes":[{"x":275,"y":267,"w":21.8,"h":30.4,"c":"#ffd66b"},{"x":202,"y":270,"w":8.7,"h":17.4,"c":"#fdd068"}]},"36":{"k":3,"eyes":[{"x":299.2,"y":397.0,"w":30.4,"h":45.7,"c":"#d4bd9f"},{"x":233.1,"y":398.1,"w":30.4,"h":45.7,"c":"#d2bb9c"}]},"37":{"k":3,"eyes":[{"x":219,"y":361,"w":31.9,"h":36.2,"c":"#896951"},{"x":311,"y":359,"w":31.9,"h":36.2,"c":"#846349"}]},"38":{"k":3,"eyes":[{"x":295.0,"y":298.9,"w":22.8,"h":26.1,"c":"#c09578"},{"x":220.3,"y":299.8,"w":20.7,"h":25.0,"c":"#c19677"}]},"39":{"k":3,"eyes":[{"x":199.2,"y":305.7,"w":37.0,"h":45.7,"c":"#95c538"}]},"40":{"k":3,"eyes":[{"x":325.5,"y":233.4,"w":65.2,"h":79.4,"c":"#93c10b"},{"x":370.8,"y":233.6,"w":41.3,"h":75.0,"c":"#93c10b"}]},"41":{"k":3,"eyes":[{"x":223.7,"y":328.7,"w":46.8,"h":46.8,"c":"#a69e95"},{"x":315.7,"y":328.7,"w":45.7,"h":46.8,"c":"#a69e95"}]},"42":{"k":3,"eyes":[{"x":251.5,"y":325.0,"w":24.0,"h":24.0,"c":"#000000"},{"x":300.6,"y":325.1,"w":25.2,"h":24.0,"c":"#000000"}]},"43":{"k":4,"eyes":[{"x":213.6,"y":341.8,"w":35.9,"h":43.5,"c":"#fbfdff"},{"x":291.1,"y":342.0,"w":34.8,"h":43.5,"c":"#fbfdff"}]}};
+function blinker(st, sl) {
+  const L = LIDS[sl.n], e = sl.els[L.k], el = st.querySelector(`#pieces > .el[data-k="${L.k}"]`); if (!el) return;
+  const lids = L.eyes.map(y => {
+    const d = document.createElement('div'); d.className = 'lid'; d.style.setProperty('--c', y.c);
+    d.style.left = ((y.x - y.w / 2 - e.x) / e.w * 100) + '%'; d.style.top = ((y.y - y.h / 2 - e.y) / e.h * 100) + '%';
+    d.style.width = (y.w / e.w * 100) + '%'; d.style.height = (y.h / e.h * 100) + '%';
+    el.appendChild(d); return d;
+  });
+  const next = () => setTimeout(() => {
+    if (!el.isConnected) return;                          // slide was left: stop
+    lids.forEach(d => { d.classList.remove('blink'); void d.offsetWidth; d.classList.add('blink'); });
+    next();
+  }, 2000 + Math.random() * 3000);   // every 2-5 seconds
+  next();
+}
+Object.keys(LIDS).forEach(n => { SLIDES[n] = Object.assign(SLIDES[n] || {}, { hook: blinker }); });
+// Popsicle Stick Days (deck 31): instruction on one line inside its pink banner
+SLIDES[31] = { hide: [355], hook: st => fitLine(st.querySelector('#pieces'), { x: 132, y: 117, w: 1176, h: 72 }, 'Drag a popsicle stick to the large box each day to record the days in school.', 40) };
+/* Months & Days (deck 7): the cards are part of the background picture; tap one to bring it up big */
+const MD_CARDS = (() => {
+  const out = [], mc = [[114, 375], [433, 693], [753, 1013], [1071, 1332]], mr = [[114, 208], [236, 330], [354, 448]];
+  mr.forEach(([y0, y1]) => mc.forEach(([x0, x1]) => out.push({ x0, y0, x1, y1 })));
+  [[162, 425], [450, 713], [738, 1001], [1026, 1290]].forEach(([x0, x1]) => out.push({ x0, x1, y0: 540, y1: 634 }));
+  [[306, 570], [593, 856], [880, 1145]].forEach(([x0, x1]) => out.push({ x0, x1, y0: 655, y1: 749 }));
+  return out;
+})();
+SLIDES[7] = { hook: (st, sl) => {
+  const layer = st.querySelector('#pieces'), bg = sl.bg.img;
+  MD_CARDS.forEach(c => {
+    const h = document.createElement('div'); h.className = 'md-hot';
+    h.style.left = pt(c.x0); h.style.top = pt(c.y0); h.style.width = pt(c.x1 - c.x0); h.style.height = pt(c.y1 - c.y0);
+    h.addEventListener('click', () => cardSpot(c, bg));
+    layer.appendChild(h);
+  });
+} };
+function cardSpot(c, bg) {
+  // months grow over the months area, days over the days area; each stays up until it is tapped again
+  const isMonth = c.y0 < 500, kind = isMonth ? 'm' : 'd';
+  const old = stage.querySelector(`.md-big[data-kind="${kind}"]`);
+  if (old) old._close();                                                  // another month/day replaces the one that's up
+  const area = isMonth ? { x0: 114, y0: 114, x1: 1332, y1: 448 } : { x0: 162, y0: 540, x1: 1290, y1: 749 };
+  const w = c.x1 - c.x0, h = c.y1 - c.y0, sc = Math.min((area.x1 - area.x0) * 0.92 / w, (area.y1 - area.y0) * 0.94 / h);
+  const ax = (area.x0 + area.x1) / 2, ay = (area.y0 + area.y1) / 2;
+  const card = document.createElement('div'); card.className = 'md-big'; card.dataset.kind = kind;
+  card.style.left = pt(c.x0); card.style.top = pt(c.y0); card.style.width = pt(w); card.style.height = pt(h);
+  card.style.backgroundImage = `url(${bg})`; card.style.backgroundSize = `${pt(W)} ${pt(H)}`; card.style.backgroundPosition = `${pt(-c.x0)} ${pt(-c.y0)}`;
+  stage.appendChild(card);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    card.style.translate = `${pt(ax - (c.x0 + w / 2))} ${pt(ay - (c.y0 + h / 2))}`; card.style.scale = sc; card.classList.add('up');
+  }));
+  card._close = () => { delete card.dataset.kind; card.style.translate = ''; card.style.scale = ''; card.classList.remove('up'); setTimeout(() => card.remove(), 400); };
+  card.addEventListener('click', card._close);
+}
+
 /* ---------- slide 1: planets drift along their orbits, each at its own pace ---------- */
 const SOLAR = {"sun":[7,540],"bodies":[{"name":"mercury","group":"mercury","x":183,"y":372,"w":48,"h":48,"cx":206.3041229248047,"cy":395.1082458496094},{"name":"venus","group":"venus","x":282,"y":708,"w":62,"h":61,"cx":312.82745361328125,"cy":738.006591796875},{"name":"earth","group":"earth","x":374,"y":233,"w":85,"h":85,"cx":416.0,"cy":275.0},{"name":"moon","group":"earth","x":457,"y":206,"w":30,"h":30,"cx":471.8235168457031,"cy":220.1764678955078},{"name":"mars","group":"mars","x":594,"y":497,"w":72,"h":72,"cx":629.5742797851562,"cy":532.554443359375},{"name":"jupiter","group":"jupiter","x":624,"y":690,"w":169,"h":169,"cx":708.0,"cy":774.0},{"name":"io","group":"jupiter","x":785,"y":655,"w":46,"h":45,"cx":807.5,"cy":677.0},{"name":"europa","group":"jupiter","x":712,"y":879,"w":45,"h":46,"cx":734.0164794921875,"cy":901.1648559570312},{"name":"titan","group":"saturn","x":828,"y":126,"w":66,"h":66,"cx":860.5322265625,"cy":158.2816162109375},{"name":"neptune","group":"neptune","x":1017,"y":90,"w":99,"h":100,"cx":1065.946044921875,"cy":139.58273315429688},{"name":"saturn","group":"saturn","x":716,"y":192,"w":219,"h":150,"cx":828.1670532226562,"cy":262.21697998046875},{"name":"uranus","group":"uranus","x":915,"y":513,"w":170,"h":130,"cx":1000,"cy":578,"svg":1}],"text":{"x":838,"y":312,"w":992,"h":444}};
 // degrees per second, inner planets fastest; moons travel with their planet
@@ -536,7 +629,7 @@ function renderFeelings() {
   return page;
 }
 // Dress the Penguin (deck 43): the sweater starts in the clothes area (smaller), full size once it's on the penguin
-SLIDES[43] = { nudge: { 8: [341.5, -280.5] }, park: { 8: 0.72 }, dressZone: { x0: 53, x1: 469 } };
+SLIDES[43] = Object.assign(SLIDES[43] || {}, { nudge: { 8: [341.5, -280.5] }, park: { 8: 0.72 }, dressZone: { x0: 53, x1: 469 } });
 // weather slide (deck 32): cards drop into the big box, which centres and sizes them as a group
 SLIDES[32] = { lock: [0, 1, 2, 3, 8], boxPiece: e => e.t === 'grp' && e.w > 250 && e.w < 300 && e.h > 180 && e.h < 220,
   box: { x: 54, y: 140, w: 530, h: 640, pad: 26, gap: 18, max: 1.6 } };
@@ -660,15 +753,92 @@ function buildBgPicker(box) {
   ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
   drop.addEventListener('drop', e => useFile(e.dataTransfer.files[0]));
 }
+/* ---------- Teach letters: draw examples so the app learns this class's handwriting ---------- */
+function buildTeacher(box) {
+  const AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  let mode = 'auto', letter = 'A', lower = false, strokes = [], cur = null, readTimer = 0;
+  box.innerHTML = `
+    <div class="tc-top">
+      <div class="tc-mode"><button class="btn tc-m on" data-m="auto">Go through A–Z</button><button class="btn tc-m" data-m="pick">Pick a letter</button></div>
+      <div class="tc-az"></div>
+    </div>
+    <div class="tc-main">
+      <div class="tc-padwrap"><div class="tc-prompt"></div><canvas class="tc-pad" width="900" height="600"></canvas><div class="tc-read"></div></div>
+      <div class="tc-side">
+        <button class="btn on tc-save">Save example</button>
+        <button class="btn tc-clear">Clear</button>
+        <button class="btn tc-skip">Skip ›</button>
+        <div class="tc-case"><button class="btn tc-c on" data-c="0">Uppercase</button><button class="btn tc-c" data-c="1">Lowercase</button></div>
+        <div class="tc-exh"></div><div class="tc-ex"></div>
+      </div>
+    </div>`;
+  const az = box.querySelector('.tc-az'), pad = box.querySelector('.tc-pad'), ctx = pad.getContext('2d');
+  AZ.forEach(L => { const b = document.createElement('button'); b.className = 'tc-l'; b.dataset.l = L; b.innerHTML = `<b>${L}</b><i></i>`; b.onclick = () => { letter = L; lower = false; if (mode === 'auto') setMode('pick'); refresh(); }; az.appendChild(b); });
+  const setMode = m => { mode = m; box.querySelectorAll('.tc-m').forEach(b => b.classList.toggle('on', b.dataset.m === m)); };
+  box.querySelectorAll('.tc-m').forEach(b => b.onclick = () => { setMode(b.dataset.m); if (mode === 'auto') { letter = 'A'; lower = false; } refresh(); });
+  box.querySelectorAll('.tc-c').forEach(b => b.onclick = () => { lower = b.dataset.c === '1'; refresh(); });
+  const glyphSvg = g => `<svg viewBox="-8 -8 116 116"><path d="${g.map(st => 'M' + st.map(p => p.join(' ')).join('L')).join('')}" fill="none" stroke="#222" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  function refresh() {
+    const data = handGet();
+    az.querySelectorAll('.tc-l').forEach(b => { const n = (data[b.dataset.l] || []).length; b.classList.toggle('on', b.dataset.l === letter); b.classList.toggle('has', n > 0); b.querySelector('i').textContent = n || ''; });
+    box.querySelectorAll('.tc-c').forEach(b => b.classList.toggle('on', (b.dataset.c === '1') === lower));
+    const shown = lower ? letter.toLowerCase() : letter;
+    box.querySelector('.tc-prompt').innerHTML = `Write ${lower ? 'lowercase' : 'uppercase'} <b>${shown}</b>`;
+    const ex = data[letter] || [];
+    box.querySelector('.tc-exh').textContent = ex.length ? `Saved examples of ${letter} (${ex.length})` : `No saved examples of ${letter} yet`;
+    const exBox = box.querySelector('.tc-ex'); exBox.innerHTML = '';
+    ex.forEach((g, i) => { const d = document.createElement('div'); d.className = 'tc-g'; d.innerHTML = glyphSvg(g) + '<button title="Remove">✕</button>';
+      d.querySelector('button').onclick = () => { const dd = handGet(); dd[letter].splice(i, 1); if (!dd[letter].length) delete dd[letter]; handSave(dd); refresh(); };
+      exBox.appendChild(d); });
+    clearPad();
+  }
+  function clearPad() { strokes = []; draw(); box.querySelector('.tc-read').textContent = ''; box.querySelector('.tc-save').disabled = true; }
+  function draw() {
+    ctx.clearRect(0, 0, pad.width, pad.height);
+    ctx.strokeStyle = '#e3e6ee'; ctx.lineWidth = 3; ctx.setLineDash([14, 12]);
+    [150, 450].forEach(y => { ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(870, y); ctx.stroke(); });   // writing guide lines
+    ctx.setLineDash([]); ctx.strokeStyle = '#111'; ctx.lineWidth = 22; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    strokes.forEach(st => { ctx.beginPath(); st.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); if (st.length === 1) ctx.lineTo(st[0][0] + .1, st[0][1]); ctx.stroke(); });
+  }
+  const at = ev => { const r = pad.getBoundingClientRect(); return [(ev.clientX - r.left) / r.width * pad.width, (ev.clientY - r.top) / r.height * pad.height]; };
+  pad.addEventListener('pointerdown', ev => { if (ev.button > 0) return; ev.preventDefault(); pad.setPointerCapture(ev.pointerId); cur = [at(ev)]; strokes.push(cur); draw(); clearTimeout(readTimer); });
+  pad.addEventListener('pointermove', ev => { if (!cur) return; const p = at(ev), q = cur[cur.length - 1]; if (Math.hypot(p[0] - q[0], p[1] - q[1]) > 3) { cur.push(p); draw(); } });
+  const up = () => { if (!cur) return; cur = null; box.querySelector('.tc-save').disabled = false; clearTimeout(readTimer); readTimer = setTimeout(readIt, 500); };
+  pad.addEventListener('pointerup', up); pad.addEventListener('pointercancel', up);
+  function readIt() {
+    if (!strokes.length || !window.LetterRec) return;
+    const r = LetterRec.recognize(strokes, pad.width)[0], el = box.querySelector('.tc-read');
+    if (!r) return;
+    el.className = 'tc-read ' + (r.letter === letter ? 'ok' : 'no');
+    el.innerHTML = r.letter === letter ? `✓ I can already read this as <b>${letter}</b> — saving still helps.` : `I read this as <b>${r.letter}</b>. Saving will teach me it's <b>${letter}</b>.`;
+  }
+  function next() {
+    if (mode === 'auto') { if (!lower) lower = true; else { lower = false; letter = AZ[(AZ.indexOf(letter) + 1) % 26]; } }
+    else lower = !lower;
+    refresh();
+  }
+  box.querySelector('.tc-clear').onclick = clearPad;
+  box.querySelector('.tc-skip').onclick = next;
+  box.querySelector('.tc-save').onclick = () => {
+    if (!strokes.length) return;
+    const data = handGet(), list = data[letter] || (data[letter] = []);
+    list.push(LetterRec.packGlyph(strokes)); while (list.length > HAND_MAX) list.shift();
+    if (handSave(data)) toast(`Saved a ${lower ? letter.toLowerCase() : letter}`);
+    next();
+  };
+  refresh();
+}
 function openLinkEditor() {
   const data = JSON.parse(JSON.stringify(linkGroups()));
   const ov = document.createElement('div'); ov.id = 'linkEd';
   ov.innerHTML = `<div class="le-panel"><header><h2>Settings</h2>
-      <div class="le-tabs"><button class="le-tab on" data-t="links">Links</button><button class="le-tab" data-t="bg">Good Morning background</button><button class="le-tab" data-t="help">Help</button></div></header>
+      <div class="le-tabs"><button class="le-tab on" data-t="links">Links</button><button class="le-tab" data-t="bg">Good Morning background</button><button class="le-tab" data-t="teach">Teach letters</button><button class="le-tab" data-t="help">Help</button></div></header>
     <div class="le-pane" data-p="links"><p class="le-hint">Edit names and web addresses, add or remove links.</p><div class="le-body"></div>
       <footer><button class="btn le-reset">Restore original links</button><span style="flex:1"></span><button class="btn le-cancel">Cancel</button><button class="btn on le-save">Save</button></footer></div>
     <div class="le-pane" data-p="bg" hidden><p class="le-hint">Pick a background for the Good Morning slide, or use your own picture. It changes right away.</p><div class="bg-body"></div>
       <footer><span style="flex:1"></span><button class="btn on le-done">Done</button></footer></div>
+    <div class="le-pane" data-p="teach" hidden><div class="teach-body"></div>
+      <footer><span class="teach-note">Examples are saved on this board.</span><span style="flex:1"></span><button class="btn on le-done">Done</button></footer></div>
     <div class="le-pane" data-p="help" hidden><div class="help-body">
       <section><h3>Moving around</h3><ul>
         <li><b>Next / previous slide:</b> the arrow buttons in the bottom bar, the keyboard arrow keys, or a <b>right mouse click</b> (one slide per click).</li>
@@ -703,6 +873,7 @@ function openLinkEditor() {
     ov.querySelectorAll('.le-pane').forEach(pn => pn.hidden = pn.dataset.p !== t.dataset.t);
   });
   ov.querySelectorAll('.le-done').forEach(b => b.onclick = () => ov.remove());
+  buildTeacher(ov.querySelector('.teach-body'));
   ov.querySelector('.le-forget').onclick = () => { handForget(); toast('Learned handwriting cleared'); };
   buildBgPicker(ov.querySelector('.bg-body'));
   const body = ov.querySelector('.le-body');
@@ -780,7 +951,7 @@ const LETTER_BOX = { x0: 203, y0: 239, x1: 521, y1: 469 };   // the "letter" box
 const UPPER_BOX = { x0: 554, y0: 239, x1: 871, y1: 469 }, LOWER_BOX = { x0: 906, y0: 239, x1: 1223, y1: 469 };
 const LETTER_BOXES = [LETTER_BOX, UPPER_BOX, LOWER_BOX];
 /* handwriting the app has learned on this board: { H: [glyph, ...], ... } (newest last, 8 per letter) */
-const HAND_KEY = 'mm-hand-v1', HAND_MAX = 8;
+const HAND_KEY = 'mm-hand-v1', HAND_MAX = 12;
 function handGet() { try { return JSON.parse(localStorage.getItem(HAND_KEY) || '{}') || {}; } catch (e) { return {}; } }
 function handLoad() { if (window.LetterRec) LetterRec.setLearned(handGet()); }
 function handLearn(letter, glyphs) {
@@ -792,6 +963,7 @@ function handLearn(letter, glyphs) {
   try { localStorage.setItem(HAND_KEY, JSON.stringify(data)); } catch (e) { return; }
   handLoad();
 }
+function handSave(data) { try { localStorage.setItem(HAND_KEY, JSON.stringify(data)); } catch (e) { toast('Storage is full'); return false; } handLoad(); return true; }
 function handForget() { try { localStorage.removeItem(HAND_KEY); } catch (e) {} handLoad(); }
 setTimeout(handLoad, 0);
 // yellow highlight hugs the word it marks (slide points, measured from the slide art)
