@@ -684,7 +684,8 @@ function openLinkEditor() {
         <li>Most slides remember where pieces were left on this board.</li></ul></section>
       <section><h3>Drawing</h3><ul>
         <li>On writing slides tap the <b>pencil</b> button. Colors, three brush sizes, eraser, undo, redo and clear appear in the bottom bar.</li>
-        <li>Letter of the Day: write the letter in the “letter” box; after a second it shows two pictures for that letter. Clear the box to start over.</li>
+        <li>Letter of the Day: write the letter in the “letter” box (and in the uppercase / lowercase boxes). After a second it shows two pictures for that letter. All three boxes are read together, so the more you write, the surer it gets.</li>
+        <li>It <b>learns your class's handwriting</b>: when two or more drawings agree on a letter, it remembers them on this board. If it ever learns something wrong, use <b>Forget learned handwriting</b> below.</li>
         <li>While drawing is on, pieces can't be dragged. Tap the pencil again to go back to moving.</li></ul></section>
       <section><h3>Tap-to-pick slides</h3><ul>
         <li>Feelings, Weather Report Feelings and the emoji slide: tap a card or emoji to make it big and glowing; tap again to undo.</li>
@@ -696,12 +697,13 @@ function openLinkEditor() {
         <li>Open Settings with the gear on the <b>Links</b> slide (slide 2).</li>
         <li><b>Links:</b> rename, add or remove link buttons. <b>Good Morning background:</b> pick a theme or use your own picture.</li>
         <li>Settings are saved on this board's browser only.</li></ul></section>
-    </div><footer><span style="flex:1"></span><button class="btn on le-done">Done</button></footer></div></div>`;
+    </div><footer><button class="btn le-forget">Forget learned handwriting</button><span style="flex:1"></span><button class="btn on le-done">Done</button></footer></div></div>`;
   ov.querySelectorAll('.le-tab').forEach(t => t.onclick = () => {
     ov.querySelectorAll('.le-tab').forEach(x => x.classList.toggle('on', x === t));
     ov.querySelectorAll('.le-pane').forEach(pn => pn.hidden = pn.dataset.p !== t.dataset.t);
   });
   ov.querySelectorAll('.le-done').forEach(b => b.onclick = () => ov.remove());
+  ov.querySelector('.le-forget').onclick = () => { handForget(); toast('Learned handwriting cleared'); };
   buildBgPicker(ov.querySelector('.bg-body'));
   const body = ov.querySelector('.le-body');
   const draw = () => {
@@ -775,6 +777,23 @@ SLIDES[16] = { draw: true, drawOn: true, hide: [0, 1], title: 'Sight Word of the
 /* ---------- slide 14: draw a letter -> recognise it -> show two pictures ---------- */
 const LETTER_PICS = {"A":[{"w":"apple","img":"letters/apple.webp"},{"w":"ant","img":"letters/ant.webp"}],"B":[{"w":"bear","img":"letters/bear.webp"},{"w":"banana","img":"letters/banana.webp"}],"C":[{"w":"cat","img":"letters/cat.webp"},{"w":"car","img":"letters/car.webp"}],"D":[{"w":"dog","img":"letters/dog.webp"},{"w":"duck","img":"letters/duck.webp"}],"E":[{"w":"egg","img":"letters/egg.webp"},{"w":"elephant","img":"letters/elephant.webp"}],"F":[{"w":"fish","img":"letters/fish.webp"},{"w":"frog","img":"letters/frog.webp"}],"G":[{"w":"grapes","img":"letters/grapes.webp"},{"w":"goat","img":"letters/goat.webp"}],"H":[{"w":"hat","img":"letters/hat.webp"},{"w":"horse","img":"letters/horse.webp"}],"I":[{"w":"ice cream","img":"letters/ice-cream.webp"},{"w":"island","img":"letters/island.webp"}],"J":[{"w":"jellyfish","img":"letters/jellyfish.webp"},{"w":"juice","img":"letters/juice.webp"}],"K":[{"w":"kite","img":"letters/kite.webp"},{"w":"kangaroo","img":"letters/kangaroo.webp"}],"L":[{"w":"lion","img":"letters/lion.webp"},{"w":"lemon","img":"letters/lemon.webp"}],"M":[{"w":"monkey","img":"letters/monkey.webp"},{"w":"moon","img":"letters/moon.webp"}],"N":[{"w":"nest","img":"letters/nest.webp"},{"w":"nose","img":"letters/nose.webp"}],"O":[{"w":"octopus","img":"letters/octopus.webp"},{"w":"orange","img":"letters/orange.webp"}],"Q":[{"w":"queen","img":"letters/queen.webp"},{"w":"quarter","img":"letters/quarter.webp"}],"R":[{"w":"rabbit","img":"letters/rabbit.webp"},{"w":"rainbow","img":"letters/rainbow.webp"}],"S":[{"w":"sun","img":"letters/sun.webp"},{"w":"snake","img":"letters/snake.webp"}],"T":[{"w":"tiger","img":"letters/tiger.webp"},{"w":"tree","img":"letters/tree.webp"}],"U":[{"w":"umbrella","img":"letters/umbrella.webp"},{"w":"unicorn","img":"letters/unicorn.webp"}],"V":[{"w":"violin","img":"letters/violin.webp"},{"w":"volcano","img":"letters/volcano.webp"}],"W":[{"w":"whale","img":"letters/whale.webp"},{"w":"watermelon","img":"letters/watermelon.webp"}],"X":[{"w":"x-ray","img":"letters/x-ray.webp"},{"w":"xylophone","img":"letters/xylophone.svg"}],"Y":[{"w":"yo-yo","img":"letters/yo-yo.webp"},{"w":"yarn","img":"letters/yarn.webp"}],"Z":[{"w":"zebra","img":"letters/zebra.webp"},{"w":"zero","img":"letters/zero.webp"}]};
 const LETTER_BOX = { x0: 203, y0: 239, x1: 521, y1: 469 };   // the "letter" box (slide points)
+const UPPER_BOX = { x0: 554, y0: 239, x1: 871, y1: 469 }, LOWER_BOX = { x0: 906, y0: 239, x1: 1223, y1: 469 };
+const LETTER_BOXES = [LETTER_BOX, UPPER_BOX, LOWER_BOX];
+/* handwriting the app has learned on this board: { H: [glyph, ...], ... } (newest last, 8 per letter) */
+const HAND_KEY = 'mm-hand-v1', HAND_MAX = 8;
+function handGet() { try { return JSON.parse(localStorage.getItem(HAND_KEY) || '{}') || {}; } catch (e) { return {}; } }
+function handLoad() { if (window.LetterRec) LetterRec.setLearned(handGet()); }
+function handLearn(letter, glyphs) {
+  const data = handGet(), list = data[letter] || (data[letter] = []), have = new Set(list.map(g => JSON.stringify(g)));
+  let added = 0;
+  glyphs.forEach(g => { const pk = LetterRec.packGlyph(g), key = JSON.stringify(pk); if (!have.has(key)) { list.push(pk); have.add(key); added++; } });
+  if (!added) return;
+  while (list.length > HAND_MAX) list.shift();
+  try { localStorage.setItem(HAND_KEY, JSON.stringify(data)); } catch (e) { return; }
+  handLoad();
+}
+function handForget() { try { localStorage.removeItem(HAND_KEY); } catch (e) {} handLoad(); }
+setTimeout(handLoad, 0);
 // yellow highlight hugs the word it marks (slide points, measured from the slide art)
 const HL = { vowel: { cx: 359.5, cy: 600.5, w: 189, h: 58 }, consonant: { cx: 360, cy: 701, w: 304, h: 58 } };
 let letterTimer = 0;
@@ -787,9 +806,10 @@ function letterSetup() {
   setTimeout(() => { if (st.letter && !letterBoxHasInk()) chooseLetter(null, []); }, 0);
 }
 // true if any ink pixels remain inside the letter box (eraser-aware)
-function letterBoxHasInk() {
+function letterBoxHasInk() { return LETTER_BOXES.some(boxHasInk); }
+function boxHasInk(b) {
   if (!ink.ctx || !ink.cv) return false;
-  const r = ink.cv.width / CW, k = 4 / 3, b = LETTER_BOX;
+  const r = ink.cv.width / CW, k = 4 / 3;
   const x = Math.round(b.x0 * k * r), y = Math.round(b.y0 * k * r), w = Math.round((b.x1 - b.x0) * k * r), h = Math.round((b.y1 - b.y0) * k * r);
   const d = ink.ctx.getImageData(x, y, w, h).data;
   for (let i = 3; i < d.length; i += 16) if (d[i] > 40) return true;
@@ -841,16 +861,21 @@ function chooseLetter(L, alts) {
 function letterInk() {
   clearTimeout(letterTimer);
   letterTimer = setTimeout(() => {
-    const k = 4 / 3, b = LETTER_BOX;
-    const strokes = visibleItems().filter(s => !s.e).map(s => s.p).filter(p => {
-      const inside = p.filter(([x, y]) => x / k > b.x0 && x / k < b.x1 && y / k > b.y0 && y / k < b.y1).length;
-      return inside > p.length / 2;
-    });
     if (!window.LetterRec) return;
-    if (!strokes.length || !letterBoxHasInk()) { if (slideState(14).letter) chooseLetter(null, []); return; }   // letter box empty / erased
-    const res = LetterRec.recognize(strokes, (b.x1 - b.x0) * k);
+    const k = 4 / 3, all = visibleItems().filter(s => !s.e).map(s => s.p);
+    // strokes in each of the three boxes (letter "Hh", uppercase "H", lowercase "h")
+    const groups = LETTER_BOXES.map(b => ({ b, strokes: boxHasInk(b) ? all.filter(p => p.filter(([x, y]) => x / k > b.x0 && x / k < b.x1 && y / k > b.y0 && y / k < b.y1).length > p.length / 2) : [] }))
+      .filter(g => g.strokes.length);
+    if (!groups.length) { if (slideState(14).letter) chooseLetter(null, []); return; }   // every box empty / erased
+    const lists = groups.map(g => LetterRec.recognize(g.strokes, (g.b.x1 - g.b.x0) * k));
+    const res = LetterRec.combine(lists);
     if (!res.length) return;
-    chooseLetter(res[0].letter, res.slice(0, 4).map(r => r.letter));
+    const L = res[0].letter;
+    chooseLetter(L, res.slice(0, 4).map(r => r.letter));
+    // learn: when two or more drawings independently agree, keep them as examples of this letter
+    const agree = lists.filter(l => l[0] && l[0].letter === L);
+    const drawings = agree.reduce((n, l) => n + l[0].glyphs.length, 0);
+    if (drawings >= 2 && agree.length === lists.length) handLearn(L, [].concat(...agree.map(l => l[0].glyphs)));
   }, 900);
 }
 let azReady = false;

@@ -185,6 +185,7 @@
   const cDist = (a, b) => (half(a, b) + half(b, a)) / 2;
 
   // ---- build templates: every shape at a few widths and slants ----
+  let LEARN_BONUS = 0.8;   // the class's own drawings count a little extra
   const P_SCALE = 0.86, C_SCALE = 0.56, SPLIT_PENALTY = 1.12;
   const WIDTHS = [0.7, 1, 1.35], SLANTS = [-0.18, 0, 0.18];
   const TEMPLATES = [];
@@ -199,13 +200,13 @@
     const pts = cloud(strokes), ras = raster(strokes);
     const bp = {}, bc = {};
     TEMPLATES.forEach(t => {
-      const c = cDist(ras, t.ras); if (bc[t.letter] == null || c < bc[t.letter]) bc[t.letter] = c;
+      const c = cDist(ras, t.ras) * (t.learned ? LEARN_BONUS : 1); if (bc[t.letter] == null || c < bc[t.letter]) bc[t.letter] = c;
     });
     // $P only for the most promising letters (fast)
     const shortlist = Object.keys(bc).sort((a, b) => bc[a] - bc[b]).slice(0, 12);
     TEMPLATES.forEach(t => {
       if (!shortlist.includes(t.letter)) return;
-      const d = pDist(pts, t.pts, bp[t.letter] == null ? Infinity : bp[t.letter]);
+      const d = pDist(pts, t.pts, bp[t.letter] == null ? Infinity : bp[t.letter] / (t.learned ? LEARN_BONUS : 1)) * (t.learned ? LEARN_BONUS : 1);
       if (bp[t.letter] == null || d < bp[t.letter]) bp[t.letter] = d;
     });
     // absolute score: both distances scaled by their typical value for a good match (~1 each)
@@ -221,20 +222,55 @@
     const all = bbox(strokes), tol = all.w * 0.12;
     const cache = new Map();
     const score = group => { const key = group.map(i => items.indexOf(i)).join(','); if (!cache.has(key)) cache.set(key, scoreGlyph(group.map(i => i.s))); return cache.get(key); };
-    const hyps = [score(items)];
+    const hyps = [{ sc: score(items), glyphs: [items.map(i => i.s)] }];
     for (let k = 1; k < items.length && items.length <= 9; k++) {
       const L = items.slice(0, k), R = items.slice(k);
       const lx1 = Math.max(...L.map(i => i.x1)), rx0 = Math.min(...R.map(i => i.x0));
       if (lx1 > rx0 + tol) continue;                                  // the two halves overlap: not two letters
       const a = score(L), b = score(R), both = {};
       Object.keys(a).forEach(Lt => { if (b[Lt] != null) both[Lt] = (a[Lt] + b[Lt]) / 2 * SPLIT_PENALTY; });
-      if (Object.keys(both).length) hyps.push(both);
+      if (Object.keys(both).length) hyps.push({ sc: both, glyphs: [L.map(i => i.s), R.map(i => i.s)] });
     }
     const best = {};
-    hyps.forEach(h => Object.keys(h).forEach(L => { if (best[L] == null || h[L] < best[L]) best[L] = h[L]; }));
-    return Object.keys(best).map(L => ({ letter: L, score: best[L] })).sort((a, b) => a.score - b.score);
+    hyps.forEach(h => Object.keys(h.sc).forEach(L => { if (!best[L] || h.sc[L] < best[L].score) best[L] = { letter: L, score: h.sc[L], glyphs: h.glyphs }; }));
+    return Object.values(best).sort((a, b) => a.score - b.score);
   }
-  const api = { recognize, _T: T };
+
+  // ---- several drawings of the same letter (e.g. "Hh" + "H" + "h"): decide together ----
+  function combine(lists) {
+    lists = lists.filter(l => l && l.length);
+    if (!lists.length) return [];
+    const letters = new Set(); lists.forEach(l => l.forEach(r => letters.add(r.letter)));
+    const out = [];
+    letters.forEach(L => {
+      let sum = 0;
+      lists.forEach(l => { const r = l.find(x => x.letter === L); sum += r ? r.score : l[l.length - 1].score + 0.6; });
+      out.push({ letter: L, score: sum / lists.length });
+    });
+    return out.sort((a, b) => a.score - b.score);
+  }
+
+  // ---- learning: drawings the class agreed on become extra templates ----
+  function packGlyph(strokes) {          // shrink to a 0..100 box, few points per stroke, whole numbers
+    const b = bbox(strokes), sc = 100 / (Math.max(b.w, b.h) || 1);
+    return strokes.map(s => {
+      const pts = s.map(([x, y]) => [Math.round((x - b.x0) * sc), Math.round((y - b.y0) * sc)]), out = [pts[0]];
+      pts.forEach(p => { const q = out[out.length - 1]; if (Math.hypot(p[0] - q[0], p[1] - q[1]) >= 6) out.push(p); });
+      if (out.length > 1 || pts.length === 1) { const last = pts[pts.length - 1]; if (out[out.length - 1] !== last) out.push(last); }
+      return out;
+    });
+  }
+  function addLearned(letter, glyph) {
+    [0.85, 1, 1.18].forEach(w => {
+      const st = glyph.map(s => s.map(([x, y]) => [x * w, y]));
+      TEMPLATES.push({ letter, pts: cloud(st), ras: raster(st), learned: true });
+    });
+  }
+  function setLearned(data) {
+    for (let i = TEMPLATES.length - 1; i >= 0; i--) if (TEMPLATES[i].learned) TEMPLATES.splice(i, 1);
+    Object.keys(data || {}).forEach(L => (data[L] || []).forEach(g => addLearned(L, g)));
+  }
+  const api = { recognize, combine, packGlyph, setLearned, _T: T, _bonus: v => { LEARN_BONUS = v; } };
   if (typeof window !== 'undefined') window.LetterRec = api;
   if (typeof module !== 'undefined') module.exports = api;
 })();
