@@ -1,0 +1,1715 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Morning Meeting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400&family=Chelsea+Market&family=Comfortaa:wght@400;700&family=Francois+One&family=Play:wght@400;700&family=Questrial&family=Raleway:wght@400;700&family=Roboto:wght@400;700&family=Source+Code+Pro&display=swap" rel="stylesheet">
+<style>
+:root{
+  --chrome:#1d2330; --chrome-2:#2a3243; --ink:#f4f6fb; --muted:#9aa4b8;
+  --accent:#ffb627; --accent-ink:#1d2330; --danger:#ff5d5d;
+  --bar-h:64px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#0e1118;color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
+#viewport{position:fixed;inset:0 0 var(--bar-h) 0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#stage{position:absolute;left:0;top:0;transform-origin:0 0;overflow:hidden;background:#fff;
+  box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.layer{position:absolute;inset:0}
+.el{position:absolute;transform-origin:50% 50%}
+.el .gfx{position:absolute;inset:0}
+.el img{display:block;width:100%;height:100%;pointer-events:none;-webkit-user-drag:none}
+.el .txt{position:absolute;inset:0;display:flex;flex-direction:column;overflow:visible;color:#000;
+  font-family:'Calibri','Carlito',sans-serif;line-height:1.2;pointer-events:none}
+.el .txt p{margin:0;white-space:pre-wrap;overflow-wrap:break-word}
+.el .txt .bu{display:inline-block;width:1.1em;text-indent:0;margin-left:-1.1em}
+.el .txt .bu.num{width:1.6em;margin-left:-1.6em}
+.el .gfx.clip{overflow:hidden}
+.el img.fill{position:absolute;max-width:none}
+.el .tbl{position:absolute;inset:0}
+.el .cell{position:absolute;overflow:hidden;display:flex;flex-direction:column;line-height:1.2;font-family:'Calibri','Carlito',sans-serif;color:#000}
+.el .cell p{margin:0;white-space:pre-wrap}
+.el .cell a.lk{color:inherit;cursor:pointer}
+.el .txt a.lk{color:inherit;pointer-events:auto;cursor:pointer}
+.el svg{position:absolute;inset:0;overflow:visible}
+.el table{border-collapse:collapse;table-layout:fixed;width:100%;height:100%}
+.el td{overflow:hidden;line-height:1.2;font-family:'Calibri','Carlito',sans-serif;color:#000}
+.el td p{margin:0;white-space:pre-wrap}
+.el td a.lk{color:inherit;cursor:pointer}
+.drag{cursor:grab;touch-action:none}
+.drag.dragging{cursor:grabbing;filter:drop-shadow(0 8px 14px rgba(0,0,0,.35))}
+.el.snapping{transition:translate .18s ease-out,scale .18s ease-out}
+.haslink{cursor:pointer}
+.el.tap-flash{animation:flash .35s}
+@keyframes flash{50%{filter:brightness(1.3) drop-shadow(0 0 12px #ffb627)}}
+
+/* ---------- chrome ---------- */
+#bar{position:fixed;left:0;right:0;bottom:0;height:var(--bar-h);background:var(--chrome);
+  display:flex;align-items:center;gap:8px;padding:0 12px;z-index:50;border-top:1px solid #000}
+body.kiosk #kioskBtn,body.kiosk #bar .sep{display:none}
+.btn{appearance:none;border:0;background:var(--chrome-2);color:var(--ink);height:48px;min-width:48px;
+  padding:0 16px;border-radius:12px;font:600 16px/1 system-ui,sans-serif;display:inline-flex;align-items:center;
+  justify-content:center;gap:8px;cursor:pointer;touch-action:manipulation}
+.btn:active{transform:scale(.96)}
+.btn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.btn.on{background:var(--accent);color:var(--accent-ink)}
+.btn.big{min-width:72px}
+#counter{min-width:120px;text-align:center;font:600 16px system-ui;color:var(--muted)}
+#counter b{color:var(--ink);font-size:20px}
+#title{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted);font-size:15px;padding:0 8px}
+.sep{width:1px;height:32px;background:#3a4357;margin:0 4px}
+
+/* kiosk floating controls */
+.kfloat{position:fixed;z-index:60;display:none}
+body.kiosk #kDoor{display:flex}
+.kfloat .btn{background:rgba(29,35,48,.55);backdrop-filter:blur(4px);height:64px;min-width:64px;border-radius:50%;padding:0}
+.kfloat .btn svg{width:32px;height:32px}
+#kPrev{left:10px;top:50%;transform:translateY(-50%)}
+#kNext{right:10px;top:50%;transform:translateY(-50%)}
+#kTools{right:10px;bottom:10px;gap:10px}
+#kExit{position:relative;overflow:hidden}
+#kExit .ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p,0)*1turn),transparent 0);opacity:.85;pointer-events:none}
+#kExit svg{position:relative}
+#kDoor{left:10px;top:10px}
+#kDoor .btn{height:44px;min-width:44px;background:rgba(29,35,48,.4)}
+#kDoor .btn svg{width:24px;height:24px}
+#kHint{position:fixed;left:62px;top:18px;z-index:61;background:rgba(0,0,0,.75);color:#fff;padding:8px 12px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+#kHint.show{opacity:1}
+
+/* menu */
+#menu{position:fixed;inset:0;z-index:80;background:rgba(10,12,18,.94);display:none;flex-direction:column}
+#menu.open{display:flex}
+#menu header{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid #2a3243}
+#menu header h2{margin:0;font:700 22px system-ui;flex:1}
+#grid{flex:1;overflow:auto;padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;touch-action:pan-y}
+.thumb{background:var(--chrome-2);border-radius:12px;overflow:hidden;cursor:pointer;border:3px solid transparent;text-align:left;padding:0;color:var(--ink)}
+.thumb.cur{border-color:var(--accent)}
+.thumb img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#fff}
+.thumb span{display:block;padding:8px 10px;font:600 14px system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.thumb span i{font-style:normal;color:var(--accent);margin-right:6px}
+
+/* tray of off-slide pieces */
+#tray{position:fixed;right:0;top:0;bottom:var(--bar-h);width:200px;z-index:40;background:rgba(29,35,48,.96);
+  transform:translateX(100%);transition:transform .2s;display:flex;flex-direction:column;border-left:1px solid #000}
+#tray.open{transform:none}
+#tray h3{margin:0;padding:14px;font:700 16px system-ui;border-bottom:1px solid #2a3243;display:flex;align-items:center;justify-content:space-between}
+#trayList{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;touch-action:pan-y}
+#trayList button{background:#fff;border:0;border-radius:8px;padding:6px;cursor:pointer}
+#trayList img{max-width:100%;max-height:110px;display:block;margin:auto}
+#trayBtn .count{background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:2px 7px;font-size:13px}
+#kTray{display:none}
+body.tray-open #kNext,body.tray-open #kTools{right:210px}
+body.kiosk.has-tray #kTray{display:inline-flex}
+#trayBtn{display:none}
+body.has-tray #trayBtn{display:inline-flex}
+
+/* letter of the day */
+#letterUI{position:fixed;right:10px;top:50%;transform:translateY(-50%);z-index:45;display:none;flex-direction:column;align-items:center;gap:8px;
+  background:rgba(29,35,48,.9);backdrop-filter:blur(4px);padding:10px 8px;border-radius:18px;box-shadow:0 6px 24px rgba(0,0,0,.35)}
+#letterUI .lbl{font:700 11px system-ui;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+#letterNow{width:64px;height:64px;border-radius:14px;background:var(--accent);color:var(--accent-ink);font:800 40px/64px system-ui;text-align:center}
+#letterUI .alt{width:52px;height:46px;border-radius:12px;border:0;background:var(--chrome-2);color:var(--ink);font:700 24px system-ui;cursor:pointer;touch-action:manipulation}
+#letterUI .alt:active{transform:scale(.95)}
+#azBtn{font-size:14px !important}
+#azGrid{position:fixed;right:96px;top:50%;transform:translateY(-50%);z-index:46;display:none;grid-template-columns:repeat(6,52px);gap:6px;
+  background:rgba(29,35,48,.96);padding:10px;border-radius:16px;box-shadow:0 6px 24px rgba(0,0,0,.4)}
+#azGrid.open{display:grid}
+.el .cap{position:absolute;left:50%;bottom:-36pt;transform:translateX(-50%);background:#fff;border:2pt solid #222;border-radius:12pt;
+  padding:1pt 12pt;font:700 22pt 'Comfortaa',system-ui,sans-serif;color:#222;white-space:nowrap;pointer-events:none}
+.el.pop .gfx{animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{0%{transform:scale(.15);opacity:0}100%{transform:scale(1);opacity:1}}
+/* ---------- links page ---------- */
+.links-page{position:absolute;inset:0;padding:26pt 36pt 30pt;display:flex;flex-direction:column;gap:18pt;
+  background:radial-gradient(circle at 12% 8%,#fff4d6 0,transparent 40%),radial-gradient(circle at 92% 95%,#dff3ff 0,transparent 45%),#fffaf0;
+  font-family:'Comfortaa','Questrial',system-ui,sans-serif;color:#2b2b3a}
+.links-page h1{margin:0;font:400 46pt/1 'Francois One','Arial Narrow',sans-serif;letter-spacing:.5pt;color:#2b2b3a;display:flex;align-items:center;gap:14pt}
+.links-page h1 small{font:700 15pt 'Comfortaa',system-ui,sans-serif;color:#8a8a99;letter-spacing:0}
+.links-cols{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:22pt;min-height:0}
+.links-col{display:flex;flex-direction:column;gap:16pt;min-height:0}
+.lgroup{background:#fff;border-radius:18pt;padding:12pt 12pt 14pt;box-shadow:0 3pt 0 rgba(0,0,0,.06),0 8pt 22pt rgba(40,30,0,.07);border-top:7pt solid var(--c)}
+.lgroup h2{margin:0 0 10pt 4pt;font:700 17pt 'Comfortaa',system-ui,sans-serif;text-transform:uppercase;letter-spacing:1pt;color:var(--c)}
+.lgroup .lbtns{display:flex;flex-direction:column;gap:8pt}
+.lbtn{appearance:none;border:0;cursor:pointer;display:flex;align-items:center;gap:10pt;width:100%;min-height:45pt;padding:5pt 12pt 5pt 7pt;
+  border-radius:12pt;background:var(--t);color:#22222e;font:700 16.5pt/1.12 'Comfortaa',system-ui,sans-serif;text-align:left;touch-action:manipulation;
+  transition:transform .08s,filter .08s}
+.lbtn:active{transform:scale(.97);filter:brightness(.95)}
+.lbtn .ic{flex:none;width:34pt;height:34pt;border-radius:50%;display:grid;place-items:center;background:#fff}
+.lbtn .ic svg{width:17pt;height:17pt}
+.lbtn .ic.yt svg{fill:#e53935}
+.lbtn .ic.web svg{fill:none;stroke:var(--c);stroke-width:2.2}
+/* spotlight */
+#spot{position:absolute;inset:0;z-index:5500;background:rgba(255,255,255,.55);backdrop-filter:grayscale(.85) blur(5px);-webkit-backdrop-filter:grayscale(.85) blur(5px);animation:spotIn .28s ease both}
+#spot.out{animation:spotOut .28s ease both}
+@keyframes spotIn{from{opacity:0}to{opacity:1}}
+@keyframes spotOut{from{opacity:1}to{opacity:0}}
+.el.spot-anim{transition:translate .38s cubic-bezier(.2,1.15,.35,1),scale .38s cubic-bezier(.2,1.15,.35,1)}
+.el.spotlit{filter:drop-shadow(0 18pt 26pt rgba(0,0,0,.28));cursor:pointer}
+.tf-label{position:absolute;z-index:900;display:flex;align-items:center;justify-content:center;font-family:Arial,Helvetica,sans-serif;color:#000;pointer-events:none}
+.tf-label.pop-num{animation:popNum .45s cubic-bezier(.2,1.4,.4,1)}
+@keyframes popNum{0%{transform:scale(.2);opacity:0}100%{transform:scale(1);opacity:1}}
+/* ---------- feelings page ---------- */
+.feel-page{position:absolute;inset:0;background-size:100% 100%;display:flex;flex-direction:column;align-items:center;padding:20pt 32pt 30pt;gap:24pt;font-family:Arial,Helvetica,sans-serif}
+.feel-title{background:#ffd5b6;border:2.5pt solid #222;padding:14pt 56pt;font-size:34pt;color:#222;clip-path:polygon(0 0,100% 0,96% 50%,100% 100%,0 100%,4% 50%)}
+.feel-row{flex:1;width:100%;display:flex;gap:22pt;min-height:0}
+.fcard{container-type:inline-size;flex:1 1 0;min-width:0;display:flex;flex-direction:column;background:#fff;border:6pt solid var(--c);border-radius:22pt;
+  cursor:pointer;transition:flex-grow .45s cubic-bezier(.2,1,.3,1),box-shadow .3s,opacity .3s,transform .3s;box-shadow:0 6pt 18pt rgba(0,0,0,.12);touch-action:manipulation}
+.feel-row.has-sel .fcard{flex-grow:.72;opacity:.8}
+.feel-row.has-sel .fcard.sel{flex-grow:1.9;opacity:1;transform:translateY(-4pt);box-shadow:0 0 0 7pt var(--c),0 0 34pt 8pt var(--c),0 14pt 30pt rgba(0,0,0,.2)}
+.fface{flex:1 1 0;min-height:0;margin:5cqw 5cqw 3cqw;border-radius:5cqw;background:var(--t);border:1.6cqw solid var(--c);display:flex;align-items:center;justify-content:center}
+.fface{container-type:size}
+.fface .crop{position:relative;overflow:hidden;pointer-events:none}
+.fface .crop img{position:absolute;max-width:none}
+.flabel{text-align:center;font-size:min(8.6cqw,34pt);color:#222;margin:0 4cqw 2.5cqw;white-space:nowrap}
+.flabel b{font-weight:400;color:var(--c)}
+.fwords{list-style:none;margin:0;padding:0 4cqw 6cqw;display:flex;flex-direction:column;align-items:center;gap:1.5cqw;font-size:min(11.5cqw,46pt);color:#111;line-height:1.1}
+.fwords li{display:flex;align-items:center;gap:3cqw}
+.fwords li::before{content:'';width:2.6cqw;height:2.6cqw;max-width:11pt;max-height:11pt;border-radius:50%;background:var(--c);flex:none}
+/* single-line fitted banner text */
+.fit-line{position:absolute;display:flex;align-items:center;justify-content:center;white-space:nowrap;font-family:Arial,Helvetica,sans-serif;color:#000;pointer-events:none;z-index:950}
+/* feelings thermometer slider */
+.therm-glow{position:absolute;border-radius:50%;pointer-events:none;z-index:940;opacity:0;transform:scale(.9);transition:opacity .25s,transform .25s;
+  box-shadow:0 0 0 6pt #fff,0 0 0 11pt var(--g),0 0 40pt 18pt var(--g)}
+.therm-glow.on{opacity:1;transform:scale(1.04)}
+.therm-handle{position:absolute;width:74pt;height:74pt;margin:-37pt 0 0 -37pt;border-radius:50%;background:#fff;border:5pt solid #333;z-index:960;cursor:grab;touch-action:none;
+  box-shadow:0 6pt 16pt rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;gap:5pt}
+.therm-handle i{display:block;width:4pt;height:28pt;border-radius:2pt;background:#555}
+.therm-handle.drag{cursor:grabbing;transform:scale(1.08)}
+/* weather report feelings */
+.wf-page{position:absolute;inset:0;background-size:100% 100%;display:flex;flex-direction:column;align-items:center;padding:20pt 30pt 28pt;gap:16pt;font-family:Arial,Helvetica,sans-serif}
+.wf-ban{border:2.5pt solid #222;color:#222;white-space:nowrap;clip-path:polygon(0 0,100% 0,96% 50%,100% 100%,0 100%,4% 50%)}
+.wf-title{background:#ffd5b6;padding:12pt 60pt;font-size:32pt}
+.wf-q{background:#ffdfe7;padding:10pt 26pt;font-size:25pt;clip-path:none;border-radius:6pt}
+.wf-row{flex:1;width:100%;display:flex;gap:18pt;min-height:0}
+.wf-card{container-type:inline-size;flex:1 1 0;min-width:0;background:#fff;border:6pt solid var(--c);border-radius:20pt;display:flex;flex-direction:column;align-items:center;
+  cursor:pointer;transition:box-shadow .3s,transform .3s,opacity .3s;box-shadow:0 6pt 16pt rgba(0,0,0,.12);touch-action:manipulation}
+.wf-row.has-sel .wf-card{opacity:.75}
+.wf-row.has-sel .wf-card.sel{opacity:1;transform:translateY(-6pt) scale(1.03);box-shadow:0 0 0 7pt var(--c),0 0 36pt 10pt var(--c),0 14pt 30pt rgba(0,0,0,.2)}
+.wf-top{width:86%;margin-top:6cqw;flex:0 0 auto;aspect-ratio:1/1.1;background:var(--t);border:1.6cqw solid var(--c);border-radius:6cqw;display:flex;flex-direction:column;align-items:center;container-type:size}
+.wf-name{font-size:15cqw;margin-top:5cqh;color:#222}
+.wf-pic{flex:1;width:100%;display:flex;align-items:center;justify-content:center;min-height:0}
+.wf-pic .crop{position:relative;overflow:hidden}
+.wf-pic .crop img{position:absolute;max-width:none}
+.wf-txt{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;line-height:1.15;padding:2cqw 5cqw 5cqw;color:#222}
+.wf-txt .s{font-size:14cqw}
+.wf-txt .w{font-size:16cqw;font-weight:700;color:var(--c);display:flex;align-items:center;gap:3cqw;margin:2cqw 0;white-space:nowrap}
+.wf-txt .w.two{font-size:15cqw;white-space:normal;flex-direction:column;gap:1cqw}
+.wf-txt .w img{width:22cqw;height:22cqw}
+/* Good Morning steps: icons come forward one at a time, 2 s each, on a loop (backpack -> breakfast -> desk) */
+.seq-pop{animation:seqPop 7.8s ease-in-out infinite;transform-origin:50% 60%}
+.seq-6{animation-delay:0s}.seq-4{animation-delay:2.6s}.seq-5{animation-delay:5.2s}
+@keyframes seqPop{0%{transform:scale(1);filter:none}5%{transform:scale(1.35) translateY(-6%);filter:drop-shadow(0 10pt 12pt rgba(0,0,0,.3))}
+  28.5%{transform:scale(1.35) translateY(-6%);filter:drop-shadow(0 10pt 12pt rgba(0,0,0,.3))}33.3%,100%{transform:scale(1);filter:none}}
+/* animated solar system (slide 1) */
+.solar-page{position:absolute;inset:0;overflow:hidden;background:#222}
+.solar-page img{position:absolute;display:block;pointer-events:none;user-select:none}
+.lset{margin-top:auto;align-self:flex-end;appearance:none;border:0;cursor:pointer;display:flex;align-items:center;gap:8pt;padding:9pt 16pt;border-radius:14pt;
+  background:#fff;color:#55556a;font:700 15pt 'Comfortaa',system-ui,sans-serif;box-shadow:0 3pt 0 rgba(0,0,0,.06),0 8pt 22pt rgba(40,30,0,.08);touch-action:manipulation}
+.lset svg{width:20pt;height:20pt;fill:none;stroke:currentColor;stroke-width:1.8}
+.lset:active{transform:scale(.97)}
+#linkEd{position:fixed;inset:0;z-index:95;background:rgba(10,12,18,.7);display:flex;align-items:center;justify-content:center;padding:20px}
+#linkEd .le-panel{background:#fff;color:#222;border-radius:18px;width:min(980px,100%);max-height:100%;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+#linkEd header{padding:18px 22px 10px;border-bottom:1px solid #eee}
+#linkEd header h2{margin:0 0 4px;font:700 22px system-ui}
+#linkEd header span{color:#666;font:15px system-ui}
+#linkEd .le-body{overflow:auto;padding:12px 22px;display:grid;grid-template-columns:1fr 1fr;gap:16px;touch-action:pan-y}
+#linkEd section{border-left:5px solid var(--c);padding:4px 0 8px 12px}
+#linkEd h3{margin:4px 0 8px;font:700 15px system-ui;color:var(--c);text-transform:uppercase;letter-spacing:.06em}
+#linkEd .le-row{display:grid;grid-template-columns:1fr 1.3fr 40px;gap:6px;margin-bottom:6px}
+#linkEd input{font:15px system-ui;padding:8px 10px;border:1px solid #ccd;border-radius:8px;min-width:0;-webkit-user-select:text;user-select:text;touch-action:manipulation}
+#linkEd .btn{height:38px;min-width:38px;padding:0 12px;font-size:14px;background:#eef0f5;color:#222}
+#linkEd .btn.on{background:var(--accent);color:var(--accent-ink)}
+#linkEd .le-del{padding:0;color:#b33}
+#linkEd footer{display:flex;gap:10px;padding:12px 22px;border-top:1px solid #eee}
+#linkEd .le-tabs{display:flex;gap:6px;margin-top:10px}
+#linkEd .le-tab{appearance:none;border:0;background:#eef0f5;color:#333;font:600 15px system-ui;padding:9px 16px;border-radius:10px;cursor:pointer;touch-action:manipulation}
+#linkEd .le-tab.on{background:#1d2330;color:#fff}
+#linkEd .le-pane{display:flex;flex-direction:column;min-height:0;flex:1}
+#linkEd .le-pane[hidden]{display:none}
+#linkEd .le-hint{margin:10px 22px 0;color:#666;font:15px system-ui}
+#linkEd .bg-body{overflow:auto;padding:12px 22px;touch-action:pan-y}
+#linkEd .bg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+#linkEd .bg-t{appearance:none;border:3px solid transparent;border-radius:12px;background:#f3f4f8;padding:4px;cursor:pointer;text-align:center;touch-action:manipulation}
+#linkEd .bg-t img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;background:#ddd}
+#linkEd .bg-t span{display:block;font:600 13px system-ui;color:#333;padding:5px 2px 2px}
+#linkEd .bg-t.on{border-color:var(--accent);background:#fff6dc}
+#linkEd .bg-drop{margin-top:14px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:22px;border:3px dashed #c9cdd8;border-radius:14px;color:#555;cursor:pointer;font:15px system-ui}
+#linkEd .bg-drop b{font:700 17px system-ui;color:#222}
+#linkEd .bg-drop.over{border-color:var(--accent);background:#fff6dc}
+@media (max-width:700px){#linkEd .le-body{grid-template-columns:1fr}}
+.el .txt a.lk.menu-lbl{font:400 19pt 'Francois One','Arial Narrow',Arial,sans-serif;color:#3b2600;text-decoration:none;letter-spacing:1.5pt;text-shadow:0 1pt 0 rgba(255,255,255,.55)}
+#toast{position:fixed;left:50%;bottom:calc(var(--bar-h) + 16px);transform:translateX(-50%);background:#000c;color:#fff;
+  padding:10px 16px;border-radius:10px;font:600 15px system-ui;opacity:0;transition:opacity .25s;z-index:90;pointer-events:none}
+#toast.show{opacity:1}
+
+/* ---------- drawing ---------- */
+#ink{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:5000;touch-action:none}
+body.drawing #ink{pointer-events:auto;cursor:crosshair}
+#drawBtn{display:none}
+body.can-draw #drawBtn{display:inline-flex}
+body.drawing #drawBtn{background:var(--accent);color:var(--accent-ink)}
+/* drawing tools live inside the bottom bar; other buttons drop to icons while drawing */
+/* compact bar on every slide: icon-only buttons, slide nav grouped at the left */
+#bar > .btn{font-size:0;gap:0;padding:0 8px;min-width:44px}
+#bar > .btn .count{font-size:12px;margin-left:4px}
+body.drawing #bar > .btn .count{display:none}
+#title{display:none}
+#counter{min-width:64px}
+#counter b{font-size:17px}
+#bar .spacer{flex:1}
+#palette{display:none;align-items:center;gap:6px;overflow-x:auto;flex:1 1 auto;min-width:0;justify-content:center;touch-action:pan-x}
+body.can-draw.drawing #palette{display:flex}
+.sw{width:40px;height:40px;flex:none;border-radius:50%;border:4px solid rgba(255,255,255,.25);cursor:pointer;padding:0;touch-action:manipulation}
+.sw.on{border-color:#fff;box-shadow:0 0 0 3px var(--accent)}
+.sz{width:42px;height:42px;flex:none;border-radius:12px;background:var(--chrome-2);border:3px solid transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;touch-action:manipulation}
+.sz i{display:block;border-radius:50%;background:#fff}
+.sz.on{border-color:var(--accent)}
+#palette .btn{height:44px;min-width:44px;padding:0 8px;border-radius:12px;flex:none}
+#palette .btn.on{background:var(--accent);color:var(--accent-ink)}
+#palette .btn:disabled{opacity:.35}
+#palette .div{width:2px;height:40px;background:#3a4357;margin:0 2px}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage"></div></div>
+
+<div id="bar">
+  <button class="btn" id="menuBtn" title="All slides"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Slides</button>
+  <button class="btn big" id="prevBtn" title="Previous"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <div id="counter"><b id="cur">1</b> / <span id="tot">1</span></div>
+  <button class="btn big" id="nextBtn" title="Next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+  <div id="title"></div>
+  <div class="spacer"></div>
+  <button class="btn" id="drawBtn" title="Draw"><svg viewBox="0 0 24 24"><path d="M3 21l3.5-1 11-11-2.5-2.5-11 11L3 21z"/><path d="M14 6l2.5 2.5"/><path d="M17 3l4 4-2 2-4-4z"/></svg>Draw</button>
+<div id="palette">
+    <div id="swatches" style="display:flex;gap:8px"></div>
+    <div class="div"></div>
+    <div id="sizes" style="display:flex;gap:6px"></div>
+    <div class="div"></div>
+    <button class="btn" id="eraserBtn" title="Eraser"><svg viewBox="0 0 24 24"><path d="M7 21h10"/><path d="M5.5 14.5l8-8a2 2 0 0 1 2.8 0l2.2 2.2a2 2 0 0 1 0 2.8L12 18H8.5z"/><path d="M9 11l5 5"/></svg></button>
+    <button class="btn" id="undoBtn" title="Undo"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+    <button class="btn" id="redoBtn" title="Redo"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>
+    <button class="btn" id="clearBtn" title="Clear drawing"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+  </div>
+  <button class="btn" id="trayBtn" title="Extra pieces"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Pieces <span class="count" id="trayCount">0</span></button>
+  <button class="btn on" id="moveBtn" title="Allow moving pieces"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3"/></svg>Move</button>
+  <button class="btn" id="resetBtn" title="Put pieces back"><svg viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M4.5 15a8 8 0 1 0 1.9-8.4L4 10"/></svg>Reset</button>
+  <div class="sep"></div>
+  <button class="btn" id="kioskBtn" title="Kiosk mode"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Kiosk</button>
+</div>
+
+<div class="kfloat" id="kPrev"><button class="btn" data-act="prev"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button></div>
+<div class="kfloat" id="kNext"><button class="btn" data-act="next"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
+<div class="kfloat" id="kTools">
+  <button class="btn" id="kTray" data-act="tray"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+  <button class="btn" data-act="menu"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+</div>
+<div class="kfloat" id="kDoor"><button class="btn" id="kExit" title="Hold to exit kiosk"><span class="ring"></span><svg viewBox="0 0 24 24"><path d="M4 21h16"/><path d="M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17"/><circle cx="14.5" cy="12.5" r="1" fill="currentColor"/></svg></button></div>
+<div id="kHint">Hold to exit kiosk</div>
+
+<div id="tray"><h3>Pieces <button class="btn" id="trayClose" style="height:36px;min-width:36px;padding:0">✕</button></h3><div id="trayList"></div></div>
+
+<div id="menu">
+  <header><h2>Morning Meeting — Slides</h2><button class="btn" id="menuClose">Close</button></header>
+  <div id="grid"></div>
+</div>
+<div id="letterUI"><span class="lbl">Letter</span><div id="letterNow">P</div><span class="lbl">or</span><div id="letterAlts" style="display:flex;flex-direction:column;gap:6px"></div><button class="alt" id="azBtn">A–Z</button></div>
+<div id="azGrid"></div>
+<div id="toast"></div>
+
+<script src="slides.js"></script>
+<script src="letters.js"></script>
+<script>
+(() => {
+'use strict';
+const D = window.DECK, W = D.w, H = D.h;
+// slides cut from the app (original deck numbers); links still resolve by original number
+const ORIG = JSON.parse(JSON.stringify(D.slides));   // untouched copies of every deck slide (incl. cut month slides) for the live calendar
+// 22-29 and 51 are the month calendars: their artwork now lives inside the live calendar (deck slide 9)
+const CUT = new Set([2, 4, 5, 15, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 33, 46, 51]);   // 4 and 5 merged into the Links page (slide 3)
+D.slides = D.slides.filter(s => !CUT.has(s.n));
+// reorder: [deck slide to move, deck slide it should follow]
+[[19, 8], [30, 12]].forEach(([mv, after]) => {
+  const i = D.slides.findIndex(s => s.n === mv); if (i < 0) return;
+  const [sl] = D.slides.splice(i, 1);
+  D.slides.splice(D.slides.findIndex(s => s.n === after) + 1, 0, sl);
+});
+const posOf = n => D.slides.findIndex(s => s.n === n);
+function relabel(list) { list.forEach(e => {
+  if (e.html && />BACK</.test(e.html)) {   // restyle the old blue underlined BACK link as a MENU label
+    const m = e.html.match(/data-slide="(\d+)"/);
+    e.html = `<p style="text-align:center;line-height:1"><a class="lk menu-lbl" data-slide="${m ? m[1] : ''}">MENU</a></p>`;
+  }
+  if (e.kids) relabel(e.kids); }); }
+relabel(D.slides.flatMap(s => s.els)); relabel(ORIG.flatMap(s => s.els));
+// the MENU/BACK buttons in the top-right corner are removed everywhere (the Slides button in the bar does the same job)
+const isMenuBtn = e => e.t === 'grp' && e.x > 1200 && e.y < 60 && JSON.stringify(e.kids).includes('menu-lbl');
+D.slides.forEach(s => s.els.forEach((e, k) => { if (isMenuBtn(e)) e.t = 'gone'; }));
+ORIG.forEach(s => s.els.forEach(e => { if (isMenuBtn(e)) e.t = 'gone'; }));
+const stage = document.getElementById('stage');
+const viewport = document.getElementById('viewport');
+stage.style.width = W + 'pt'; stage.style.height = H + 'pt';
+
+/* ---------- persistence (per-viewer convenience only) ---------- */
+const KEY = 'mm-board-v1';
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} };
+
+/* ---------- per-slide customisation (filled in slide by slide) ---------- */
+// lock: element indexes that should never move; free: force movable. hooks run after render.
+const SLIDES = {};
+const fmtDate = d => d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+const weekday = d => d.toLocaleDateString('en-US', { weekday: 'long' });
+function liveDate(root) {
+  const now = new Date();
+  root.querySelectorAll('.txt span, .cell span').forEach(s => {
+    const t = s.textContent;
+    if (/^(Sun|Mon|Tues|Wednes|Thurs|Fri|Satur)day$/.test(t.trim())) s.textContent = weekday(now);
+    else if (/^(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}$/.test(t.trim())) s.textContent = fmtDate(now);
+  });
+}
+SLIDES[2] = { hook: liveDate };
+SLIDES[6] = { hook: (st, sl) => { liveDate(st); gmApply(st); [4, 5, 6].forEach(k => { const el = st.querySelector(`#pieces > .el[data-k="${k}"] .gfx`); if (el) el.classList.add('seq-pop', 'seq-' + k); }); }, title: 'Good Morning', nudge: { 2: [0, -69], 7: [0, -69], 3: [0, -25], 4: [0, -25], 5: [0, -25], 6: [0, -25] } };   // centre the greeting + date above the step boxes
+// roll the day/date over while the board stays on (checks every 30s and when the screen wakes)
+let lastDay = new Date().toDateString();
+function dayTick() {
+  const today = new Date().toDateString();
+  if (today === lastDay) return;
+  lastDay = today;
+  const s = D.slides[idx], cfg = SLIDES[s.n];
+  if (cfg && cfg.hook === liveDate) liveDate(stage);
+  const i9 = installMonth();
+  if (i9 >= 0) { prepSnap(D.slides[i9]); if (idx === i9 && !drags.size) show(idx); }
+}
+setInterval(dayTick, 30000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') dayTick(); });
+SLIDES[13] = { draw: true };
+/* ---------- slide 1: planets drift along their orbits, each at its own pace ---------- */
+const SOLAR = {"sun":[7,540],"bodies":[{"name":"mercury","group":"mercury","x":183,"y":372,"w":48,"h":48,"cx":206.3041229248047,"cy":395.1082458496094},{"name":"venus","group":"venus","x":282,"y":708,"w":62,"h":61,"cx":312.82745361328125,"cy":738.006591796875},{"name":"earth","group":"earth","x":374,"y":233,"w":85,"h":85,"cx":416.0,"cy":275.0},{"name":"moon","group":"earth","x":457,"y":206,"w":30,"h":30,"cx":471.8235168457031,"cy":220.1764678955078},{"name":"mars","group":"mars","x":594,"y":497,"w":72,"h":72,"cx":629.5742797851562,"cy":532.554443359375},{"name":"jupiter","group":"jupiter","x":624,"y":690,"w":169,"h":169,"cx":708.0,"cy":774.0},{"name":"io","group":"jupiter","x":785,"y":655,"w":46,"h":45,"cx":807.5,"cy":677.0},{"name":"europa","group":"jupiter","x":712,"y":879,"w":45,"h":46,"cx":734.0164794921875,"cy":901.1648559570312},{"name":"titan","group":"saturn","x":828,"y":126,"w":66,"h":66,"cx":860.5322265625,"cy":158.2816162109375},{"name":"neptune","group":"neptune","x":1017,"y":90,"w":99,"h":100,"cx":1065.946044921875,"cy":139.58273315429688},{"name":"saturn","group":"saturn","x":716,"y":192,"w":219,"h":150,"cx":828.1670532226562,"cy":262.21697998046875},{"name":"uranus","group":"uranus","x":915,"y":513,"w":170,"h":130,"cx":1000,"cy":578,"svg":1}],"text":{"x":838,"y":312,"w":992,"h":444}};
+// degrees per second, inner planets fastest; moons travel with their planet
+const SOLAR_SPEED = { mercury: 4.8, venus: 3.6, earth: 2.9, mars: 2.3, jupiter: 1.5, saturn: 1.15, uranus: 0.95, neptune: 0.75 };
+const SOLAR_T0 = performance.now();
+SLIDES[1] = { custom: 'solar', title: 'Good Morning!' };
+function renderSolar() {
+  const IW = 1920, IH = 1080, k = W / IW, [sx, sy] = SOLAR.sun;
+  const page = document.createElement('div'); page.className = 'solar-page';
+  const add = (src, x, y, w, h) => { const i = document.createElement('img'); i.src = src; i.alt = ''; i.draggable = false;
+    i.style.left = pt(x * k); i.style.top = pt(y * k); i.style.width = pt(w * k); i.style.height = pt(h * k); page.appendChild(i); return i; };
+  add('solar/plate.webp', 0, 0, IW, IH);
+  const bodies = SOLAR.bodies.map(b => {
+    const r = Math.hypot(b.cx - sx, b.cy - sy), th = Math.atan2(b.cy - sy, b.cx - sx) * 180 / Math.PI;
+    return { ...b, r, th, el: add(b.svg ? 'solar/uranus.svg' : `solar/${b.name}.webp`, b.x, b.y, b.w, b.h) };
+  });
+  const T = SOLAR.text; add('solar/text.webp', T.x, T.y, T.w, T.h);
+  // for each group: the range of angle offsets over which at least one member is on screen
+  const off = (b, d) => { const a = (b.th + d) * Math.PI / 180, x = sx + b.r * Math.cos(a), y = sy + b.r * Math.sin(a), hs = Math.max(b.w, b.h) / 2 + 4;
+    return x + hs < 0 || y + hs < 0 || y - hs > IH || x - hs > IW; };
+  const groups = {};
+  bodies.forEach(b => {
+    let top = -200, bot = 200;
+    for (let d = 0; d >= -200; d -= 0.5) if (off(b, d)) { top = d; break; }
+    for (let d = 0; d <= 200; d += 0.5) if (off(b, d)) { bot = d; break; }
+    const g = groups[b.group] || (groups[b.group] = { lo: 0, hi: 0, items: [] });
+    g.lo = Math.min(g.lo, top); g.hi = Math.max(g.hi, bot); g.items.push(b);
+  });
+  const tick = now => {
+    if (!page.isConnected) return;                       // stop when the slide is left
+    const t = (now - SOLAR_T0) / 1000;
+    Object.keys(groups).forEach(name => {
+      const g = groups[name], span = g.hi - g.lo, w = SOLAR_SPEED[name] || 1;
+      const d = g.lo + ((((-g.lo) - w * t) % span) + span) % span;   // moving "up" the arc, wrapping bottom -> top
+      g.items.forEach(b => {
+        const a = (b.th + d) * Math.PI / 180;
+        b.el.style.translate = `${pt((sx + b.r * Math.cos(a) - b.cx) * k)} ${pt((sy + b.r * Math.sin(a) - b.cy) * k)}`;
+      });
+    });
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+  return page;
+}
+/* image cropped exactly like the deck crops it (sprite sheets) */
+function cropHtml(e, maxW, maxH) {
+  const f = e.fill || [0, 0, 0, 0], r = e.w / e.h;
+  return `<div class="crop" style="aspect-ratio:${e.w}/${e.h};width:min(${maxW}, calc(${maxH} * ${r.toFixed(4)}))"><img alt="" src="${e.img}" style="left:${f[0] * 100}%;top:${f[1] * 100}%;width:${(1 - f[0] - f[2]) * 100}%;height:${(1 - f[1] - f[3]) * 100}%"></div>`;
+}
+/* put a deck text box's words on one line, shrunk to fit its banner */
+function fitLine(layer, box, text, maxPt) {
+  const d = document.createElement('div'); d.className = 'fit-line'; d.textContent = text;
+  d.style.left = pt(box.x); d.style.top = pt(box.y); d.style.width = pt(box.w); d.style.height = pt(box.h);
+  layer.appendChild(d);
+  let fs = maxPt; d.style.fontSize = fs + 'pt';
+  while (fs > 10 && d.scrollWidth > d.clientWidth) { fs -= 1; d.style.fontSize = fs + 'pt'; }
+}
+// Feelings Thermometer (deck 48): tidy instruction + a slider on the arrow line that lights up the face above it
+const THERM = { faces: [309.5, 473, 636, 799, 962, 1125.5], fy: 411.5, fd: 162, ly: 571, x0: 230, x1: 1205,
+  colors: ['#18a83a', '#4cd11a', '#f2c500', '#f39a12', '#ef3b22', '#b3200f'] };
+SLIDES[48] = { hide: [4], title: 'Feelings Thermometer', hook: () => {
+  const layer = stage.querySelector('#pieces'), st = slideState(48);
+  fitLine(layer, { x: 140, y: 135, w: 1160, h: 73 }, 'Look at the thermometer and think about where your feelings are right now.', 30);
+  const glows = THERM.faces.map((x, i) => {
+    const g = document.createElement('div'); g.className = 'therm-glow'; g.style.setProperty('--g', THERM.colors[i]);
+    g.style.left = pt(x - THERM.fd / 2); g.style.top = pt(THERM.fy - THERM.fd / 2); g.style.width = g.style.height = pt(THERM.fd);
+    layer.appendChild(g); return g;
+  });
+  const h = document.createElement('div'); h.className = 'therm-handle'; h.innerHTML = '<i></i><i></i><i></i>';
+  layer.appendChild(h);
+  const place = (x, lit) => {
+    h.style.left = pt(x); h.style.top = pt(THERM.ly);
+    let near = 0; THERM.faces.forEach((f, i) => { if (Math.abs(f - x) < Math.abs(THERM.faces[near] - x)) near = i; });
+    glows.forEach((g, i) => g.classList.toggle('on', lit && i === near));
+  };
+  place(st.slider != null ? st.slider : (THERM.x0 + THERM.x1) / 2, st.slider != null);
+  let dragging = null;
+  h.addEventListener('pointerdown', ev => { ev.preventDefault(); ev.stopPropagation(); dragging = ev.pointerId; h.setPointerCapture(ev.pointerId); h.classList.add('drag'); });
+  h.addEventListener('pointermove', ev => {
+    if (dragging !== ev.pointerId) return;
+    const r = stage.getBoundingClientRect(), x = Math.min(THERM.x1, Math.max(THERM.x0, (ev.clientX - r.left) / r.width * W));
+    st.slider = x; place(x, true);
+  });
+  const up = ev => { if (dragging !== ev.pointerId) return; dragging = null; h.classList.remove('drag'); save(); };
+  h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+} };
+// Weather Report Feelings (deck 49): rebuilt as tidy cards; tap one to make it glow
+SLIDES[49] = { custom: 'weatherfeel', title: 'Weather Report Feelings' };
+function renderWeatherFeel() {
+  const src = ORIG.find(x => x.n === 49).els, st = slideState(49);
+  const cards = [
+    { c: '#f2c500', t: '#feffe3', name: 'Sunny', pic: src[4], word: 'HAPPY', emo: src[34] },
+    { c: '#2189e6', t: '#eaf5ff', name: 'Rainy', pic: src[10], word: 'SAD', emo: src[33] },
+    { c: '#4f7e8e', t: '#e3eff4', name: 'Stormy', pic: src[9], word: 'ANGRY', emo: src[32] },
+    { c: '#637470', t: '#f6f6f6', name: 'Cloudy', pic: src[13], word: 'TIRED or BLAH', emo: src[31] },
+    { c: '#2ab9e4', t: '#ddf7ff', name: 'Windy', pic: src[16], word: 'WORRIED', emo: src[30] }
+  ];
+  const page = document.createElement('div'); page.className = 'wf-page';
+  page.style.backgroundImage = `url(${src[0].img})`;
+  page.innerHTML = '<div class="wf-ban wf-title">Weather Report Feelings</div><div class="wf-ban wf-q">If your feelings today were the weather, what would they be?</div><div class="wf-row"></div>';
+  const row = page.querySelector('.wf-row');
+  const apply = () => { row.classList.toggle('has-sel', st.sel != null); [...row.children].forEach((el, i) => el.classList.toggle('sel', st.sel === i)); };
+  cards.forEach((cd, i) => {
+    const el = document.createElement('div'); el.className = 'wf-card';
+    el.style.setProperty('--c', cd.c); el.style.setProperty('--t', cd.t);
+    const two = cd.word.includes(' ');
+    el.innerHTML = `<div class="wf-top"><div class="wf-name">${cd.name}</div><div class="wf-pic">${cropHtml(cd.pic, '80cqw', '62cqh')}</div></div>
+      <div class="wf-txt"><span class="s">I am feeling</span><span class="w${two ? ' two' : ''}">${two ? cd.word.replace(' or ', '<br>or ') : cd.word}<img alt="" src="${cd.emo.img}"></span><span class="s">today</span></div>`;
+    el.addEventListener('click', () => { st.sel = st.sel === i ? null : i; save(); apply(); });
+    row.appendChild(el);
+  });
+  apply();
+  return page;
+}
+// How Are You Feeling Today? (deck 47): rebuilt as tidy cards; tap one to enlarge + highlight it
+SLIDES[47] = { custom: 'feelings', title: 'How Are You Feeling Today?', fresh: true };
+function renderFeelings() {
+  const src = ORIG.find(x => x.n === 47).els, st = slideState(47);
+  const cards = [
+    { c: '#ee1a19', t: '#ffaeae', word: 'Red', e: src[20], words: ['Angry', 'Panicked', 'Terrified'] },
+    { c: '#f2c500', t: '#fdffc1', word: 'Yellow', e: src[6], words: ['Worried', 'Frustrated', 'Stressed'] },
+    { c: '#2189e6', t: '#badeff', word: 'Blue', e: src[11], words: ['Sad', 'Tired', 'Sick'] },
+    { c: '#039834', t: '#b5ffcd', word: 'Green', e: src[16], words: ['Happy', 'Calm', 'Proud'] }
+  ];
+  const page = document.createElement('div'); page.className = 'feel-page';
+  page.style.backgroundImage = `url(${src[0].img})`;
+  page.innerHTML = '<div class="feel-title">How Are You Feeling Today?</div><div class="feel-row"></div>';
+  const row = page.querySelector('.feel-row');
+  const apply = () => { row.classList.toggle('has-sel', st.sel != null); [...row.children].forEach((el, i) => el.classList.toggle('sel', st.sel === i)); };
+  cards.forEach((cd, i) => {
+    const el = document.createElement('div'); el.className = 'fcard';
+    el.style.setProperty('--c', cd.c); el.style.setProperty('--t', cd.t);
+    // the faces share one picture; reproduce the deck's crop of each one
+    const f = cd.e.fill || [0, 0, 0, 0];
+    const imgStyle = `left:${f[0] * 100}%;top:${f[1] * 100}%;width:${(1 - f[0] - f[2]) * 100}%;height:${(1 - f[1] - f[3]) * 100}%`;
+    el.innerHTML = `<div class="fface"><div class="crop" style="aspect-ratio:${cd.e.w}/${cd.e.h};width:min(86cqw, calc(88cqh * ${(cd.e.w / cd.e.h).toFixed(4)}))"><img alt="" src="${cd.e.img}" style="${imgStyle}"></div></div><div class="flabel">I’m Feeling <b>${cd.word}</b></div><ul class="fwords">${cd.words.map(w => `<li>${w}</li>`).join('')}</ul>`;
+    el.addEventListener('click', () => { st.sel = st.sel === i ? null : i; save(); apply(); });
+    row.appendChild(el);
+  });
+  apply();
+  return page;
+}
+// Dress the Penguin (deck 43): the sweater starts in the clothes area (smaller), full size once it's on the penguin
+SLIDES[43] = { nudge: { 8: [341.5, -280.5] }, park: { 8: 0.72 }, dressZone: { x0: 53, x1: 469 } };
+// weather slide (deck 32): cards drop into the big box, which centres and sizes them as a group
+SLIDES[32] = { lock: [0, 1, 2, 3, 8], boxPiece: e => e.t === 'grp' && e.w > 250 && e.w < 300 && e.h > 180 && e.h < 220,
+  box: { x: 54, y: 140, w: 530, h: 640, pad: 26, gap: 18, max: 1.6 } };
+// emoji mood slide (deck 50): tap an emoji to spotlight it
+SLIDES[50] = { spotlight: e => e.t === 'sp' && e.img && !e.html && e.w > 150 && e.w < 250, title: 'What Emoji Matches Your Mood?' };
+/* ---------- slide 3: one Links page (replaces deck slides 3, 4, 5) ---------- */
+const LINK_KEY = 'mm-links-v1';
+const LINK_GROUPS = [
+  [{ t: 'Morning & Music', c: '#e8743b', bg: '#fdebe1', links: [
+    ['Mr. B Good Morning', 'https://www.youtube.com/watch?v=QLu8IoOvmqs'],
+    ['Fruit Rhythms', 'https://www.youtube.com/watch?v=1ou50NJlA2A'],
+    ['Clap the Rhythm – Stevie Wonder', 'https://www.youtube.com/watch?v=_f4QbRRbTH0'],
+    ['Body Percussion – Soda Pop', 'https://www.youtube.com/watch?v=5jQ6aKnUXOo&list=PLqotNo_cLY82KPSZwQW58hhEn4dyEKPPH']] },
+   { t: 'Move & Breathe', c: '#2e9e6b', bg: '#e2f5ea', links: [
+    ['Yoga – Moovelee', 'https://www.youtube.com/channel/UCsSS5kMpKCaJ_HhTM9-HKHg/videos'],
+    ['DJ Raphi Warm Up', 'https://www.youtube.com/watch?v=gkw0JCdZO90'],
+    ['Bubble Bounce Mindfulness', 'https://www.youtube.com/watch?v=UEuFi9PxKuo']] }],
+  [{ t: 'Social Stories', c: '#d6457a', bg: '#fbe4ee', links: [
+    ['A Little Spot of Kindness', 'https://www.youtube.com/watch?v=6kTsQKccuyY'],
+    ['Kindness Song', 'https://www.youtube.com/watch?v=Zz1OFZbEP0g'],
+    ['Mr. Mike – Be Polite', 'https://www.youtube.com/@yourfriendmrmike'],
+    ['MYOB', 'https://www.youtube.com/@yourfriendmrmike']] },
+   { t: 'Timers', c: '#6d5bd0', bg: '#ece8fb', links: [
+    ['Countdown Studio', 'https://www.youtube.com/@countdownstudio101/playlists'],
+    ['Mr. Timer', 'https://www.youtube.com/@MrTimer']] },
+   { t: 'Letters & Sounds', c: '#c99a06', bg: '#fdf3d0', links: [
+    ['Alphabet Bingo', 'https://wordwall.net/resource/4934968/alphabet-bingo'],
+    ['Phonics Man – Alphabet Song', 'https://www.youtube.com/results?search_query=phonics+man+alphabet+song']] }],
+  [{ t: 'Math', c: '#1f7ac2', bg: '#e0eefa', links: [
+    ['Counting to 20 – Numberock', 'https://numberock.com/lessons/count-to-20/'],
+    ['Numberblocks Counting to 20', 'https://www.youtube.com/watch?v=vpA5wuraL4Y'],
+    ['Number Lines', 'https://mathsbot.com/tools/numberLine'],
+    ['Number Line 2', 'https://numberline.school/'],
+    ['Ten Frame – Cool Math', 'https://www.coolmath4kids.com/manipulatives/ten-frame'],
+    ['Number of the Day – Topmarks', 'https://www.topmarks.co.uk/learning-to-count/todays-number-up-to-20'],
+    ['Red / Yellow Counters', 'https://toytheater.com/two-color-counter-ten-frame/'],
+    ['Friends of 10 – Hartman', 'https://www.youtube.com/watch?v=73av5oijolU'],
+    ['Compose & Decompose', 'https://www.youtube.com/watch?v=G05AgnEGmgw'],
+    ['Scratch Garden', 'https://www.youtube.com/watch?v=362JVVvgYPE'],
+    ['Fractions – Scratch Garden', 'https://www.youtube.com/watch?v=362JVVvgYPE']] }],
+  [{ t: 'Science', c: '#3a9a2f', bg: '#e6f4dc', links: [
+    ['How Do Animals Move?', 'https://www.youtube.com/watch?v=k7arwPm8Qgg'],
+    ['Mystery Science – Push & Pull', 'https://mysteryscience.com/pushes/mystery-1/pushes-pulls/103'],
+    ['Woodpeckers Peck – Mystery Science', 'https://mysteryscience.com/animal-secrets/mystery-1/animal-needs-food/115'],
+    ['Apple Decompose Video', 'https://www.youtube.com/watch?v=tyR3LHr6EwU'],
+    ['Apple in Water Video', 'https://www.youtube.com/watch?v=DOHcavIIOYs'],
+    ['Life Cycle Video', 'https://www.youtube.com/watch?v=g4JMkBWpj9M'],
+    ['Apple Picking Song – Danny Go', 'https://www.youtube.com/watch?v=pR2zQiE_e1A']] }]
+];
+SLIDES[3] = { custom: 'links', title: 'Links' };
+// links can be edited from the Settings button; saved per board, defaults above
+function linkGroups() {
+  try { const v = JSON.parse(localStorage.getItem(LINK_KEY) || 'null'); if (Array.isArray(v)) return v; } catch (e) {}
+  return LINK_GROUPS;
+}
+// shrink the link cards (never grow) so every column fits on the page
+function fitLinks(page) {
+  const cols = page.querySelector('.links-cols'); if (!cols) return;
+  cols.style.zoom = 1;
+  const avail = cols.clientHeight;
+  const need = Math.max(...[...cols.children].map(c => [...c.children].reduce((h, el) => h + el.offsetHeight, 0) + 16 * 1.333 * (c.children.length - 1)));
+  if (need > avail) cols.style.zoom = Math.max(0.5, avail / need).toFixed(3);
+}
+/* ---------- Good Morning background (slide 3 / deck 6) ---------- */
+const GM_KEY = 'mm-gm-bg';
+const GM_THEMES = [{"id":"fall","name":"Fall Leaves"},{"id":"thanks","name":"Thanksgiving"},{"id":"winter","name":"Snowy Winter"},{"id":"cozy","name":"Cozy Winter"},{"id":"valentine","name":"Valentine's"},{"id":"stpat","name":"St. Patrick's"},{"id":"spring","name":"Spring Flowers"},{"id":"chicks","name":"Spring Chicks"},{"id":"rain","name":"Rainy Day"},{"id":"beach","name":"Summer Beach"},{"id":"sea","name":"Under the Sea"},{"id":"space","name":"Outer Space"},{"id":"dino","name":"Dinosaurs"},{"id":"farm","name":"On the Farm"},{"id":"school","name":"Back to School"},{"id":"garden","name":"Garden Bugs"},{"id":"sports","name":"Sports Day"},{"id":"music","name":"Music Time"},{"id":"rainbow","name":"Rainbow Sky"}];
+const GM_DARK = new Set(['space']);
+function gmGet() { try { return JSON.parse(localStorage.getItem(GM_KEY) || 'null'); } catch (e) { return null; } }
+function gmSet(v) {
+  try { if (v) localStorage.setItem(GM_KEY, JSON.stringify(v)); else localStorage.removeItem(GM_KEY); return true; }
+  catch (e) { toast('That picture is too big to save — try a smaller one'); return false; }
+}
+function gmApply(stageEl) {
+  const v = gmGet(); if (!v) return;
+  const src = v.type === 'upload' ? v.data : `bgs/${v.id}.webp`;
+  const bgl = stageEl.querySelector('.layer'); if (bgl) bgl.style.background = `#fff url("${src}") center/cover no-repeat`;
+  [0, 1].forEach(k => { const el = stageEl.querySelector(`#pieces > .el[data-k="${k}"]`); if (el) el.style.display = 'none'; });
+  stageEl.querySelectorAll('#pieces > .el .cell').forEach(c => { c.style.background = 'rgba(255,255,255,.82)'; });
+  if (v.type === 'theme' && GM_DARK.has(v.id)) [2, 7].forEach(k => { const el = stageEl.querySelector(`#pieces > .el[data-k="${k}"] .txt`);
+    if (el) el.querySelectorAll('span, p').forEach(x => { x.style.color = '#fff'; x.style.textShadow = '0 3pt 10pt rgba(0,0,0,.5)'; }); });
+}
+function buildBgPicker(box) {
+  const cur = gmGet();
+  const orig = (ORIG.find(x => x.n === 6) || { els: [] }).els[1];
+  const items = [{ id: null, name: 'Original (Halloween)', thumb: orig ? orig.img : '' }].concat(GM_THEMES.map(t => ({ id: t.id, name: t.name, thumb: `bgs/${t.id}-t.webp` })));
+  box.innerHTML = `<div class="bg-grid"></div><label class="bg-drop"><input type="file" accept="image/*" hidden><b>Use your own picture</b><span>Drag a picture here, or tap to choose one</span></label>`;
+  const grid = box.querySelector('.bg-grid');
+  const mark = () => { const v = gmGet(); grid.querySelectorAll('.bg-t').forEach(b => b.classList.toggle('on', v ? (v.type === 'theme' && b.dataset.id === v.id) || (v.type === 'upload' && b.dataset.id === '__up') : b.dataset.id === '')); };
+  items.forEach(it => {
+    const b = document.createElement('button'); b.className = 'bg-t'; b.dataset.id = it.id || '';
+    b.innerHTML = `<img alt="" src="${it.thumb}"><span></span>`; b.querySelector('span').textContent = it.name;
+    b.onclick = () => { if (gmSet(it.id ? { type: 'theme', id: it.id } : null)) { mark(); toast(`Background: ${it.name}`); } };
+    grid.appendChild(b);
+  });
+  const addUploadTile = () => {
+    const v = gmGet(); let t = grid.querySelector('[data-id="__up"]');
+    if (v && v.type === 'upload') {
+      if (!t) { t = document.createElement('button'); t.className = 'bg-t'; t.dataset.id = '__up'; t.innerHTML = '<img alt=""><span>Your picture</span>'; grid.prepend(t);
+        t.onclick = () => { const v2 = gmGet(); if (v2 && v2.type === 'upload') { mark(); } }; }
+      t.querySelector('img').src = v.data;
+    }
+  };
+  addUploadTile(); mark();
+  const drop = box.querySelector('.bg-drop'), input = drop.querySelector('input');
+  const useFile = f => {
+    if (!f || !/^image\//.test(f.type)) { toast('Please choose a picture file'); return; }
+    const img = new Image(), url = URL.createObjectURL(f);
+    img.onload = () => {
+      const k = Math.min(1, 1920 / img.width, 1080 / img.height), c = document.createElement('canvas');
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      let q = 0.85, data = c.toDataURL('image/jpeg', q);
+      while (data.length > 1800000 && q > 0.4) { q -= 0.1; data = c.toDataURL('image/jpeg', q); }   // keep it small enough to save
+      if (gmSet({ type: 'upload', data })) { addUploadTile(); mark(); toast('Background: your picture'); }
+    };
+    img.onerror = () => toast("Couldn't read that picture");
+    img.src = url;
+  };
+  input.onchange = () => useFile(input.files[0]);
+  ['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => useFile(e.dataTransfer.files[0]));
+}
+function openLinkEditor() {
+  const data = JSON.parse(JSON.stringify(linkGroups()));
+  const ov = document.createElement('div'); ov.id = 'linkEd';
+  ov.innerHTML = `<div class="le-panel"><header><h2>Settings</h2>
+      <div class="le-tabs"><button class="le-tab on" data-t="links">Links</button><button class="le-tab" data-t="bg">Good Morning background</button></div></header>
+    <div class="le-pane" data-p="links"><p class="le-hint">Edit names and web addresses, add or remove links.</p><div class="le-body"></div>
+      <footer><button class="btn le-reset">Restore original links</button><span style="flex:1"></span><button class="btn le-cancel">Cancel</button><button class="btn on le-save">Save</button></footer></div>
+    <div class="le-pane" data-p="bg" hidden><p class="le-hint">Pick a background for the Good Morning slide, or use your own picture. It changes right away.</p><div class="bg-body"></div>
+      <footer><span style="flex:1"></span><button class="btn on le-done">Done</button></footer></div></div>`;
+  ov.querySelectorAll('.le-tab').forEach(t => t.onclick = () => {
+    ov.querySelectorAll('.le-tab').forEach(x => x.classList.toggle('on', x === t));
+    ov.querySelectorAll('.le-pane').forEach(pn => pn.hidden = pn.dataset.p !== t.dataset.t);
+  });
+  ov.querySelector('.le-done').onclick = () => ov.remove();
+  buildBgPicker(ov.querySelector('.bg-body'));
+  const body = ov.querySelector('.le-body');
+  const draw = () => {
+    body.innerHTML = '';
+    data.forEach(col => col.forEach(g => {
+      const sec = document.createElement('section'); sec.style.setProperty('--c', g.c);
+      sec.innerHTML = `<h3></h3>`; sec.querySelector('h3').textContent = g.t;
+      g.links.forEach((lk, i) => {
+        const row = document.createElement('div'); row.className = 'le-row';
+        row.innerHTML = `<input class="le-name" placeholder="Button name"><input class="le-url" placeholder="https://…"><button class="btn le-del" title="Remove">✕</button>`;
+        const [n, u] = row.querySelectorAll('input'); n.value = lk[0]; u.value = lk[1];
+        n.oninput = () => lk[0] = n.value; u.oninput = () => lk[1] = u.value;
+        row.querySelector('.le-del').onclick = () => { g.links.splice(i, 1); draw(); };
+        sec.appendChild(row);
+      });
+      const add = document.createElement('button'); add.className = 'btn le-add'; add.textContent = '+ Add link';
+      add.onclick = () => { g.links.push(['New link', 'https://']); draw(); const ins = sec.parentNode && body.querySelectorAll('.le-name'); };
+      sec.appendChild(add); body.appendChild(sec);
+    }));
+  };
+  draw();
+  const close = () => ov.remove();
+  ov.querySelector('.le-cancel').onclick = close;
+  ov.querySelector('.le-reset').onclick = () => { try { localStorage.removeItem(LINK_KEY); } catch (e) {} close(); show(idx); toast('Original links restored'); };
+  ov.querySelector('.le-save').onclick = () => {
+    data.forEach(col => col.forEach(g => { g.links = g.links.filter(l => l[0].trim() && /^https?:\/\/\S+\.\S+/.test(l[1].trim())).map(l => [l[0].trim(), l[1].trim()]); }));
+    try { localStorage.setItem(LINK_KEY, JSON.stringify(data)); } catch (e) {}
+    close(); show(idx); toast('Links saved');
+  };
+  document.body.appendChild(ov);
+}
+function renderLinks() {
+  const yt = '<span class="ic yt"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg></span>';
+  const web = '<span class="ic web"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg></span>';
+  const page = document.createElement('div'); page.className = 'links-page';
+  page.innerHTML = '<h1>Links <small>tap to open</small></h1>';
+  const cols = document.createElement('div'); cols.className = 'links-cols';
+  linkGroups().forEach(col => {
+    const c = document.createElement('div'); c.className = 'links-col';
+    col.forEach(g => {
+      const box = document.createElement('section'); box.className = 'lgroup';
+      box.style.setProperty('--c', g.c); box.style.setProperty('--t', g.bg);
+      box.innerHTML = `<h2></h2><div class="lbtns"></div>`;
+      box.querySelector('h2').textContent = g.t;
+      g.links.forEach(([label, url]) => {
+        const b = document.createElement('button'); b.className = 'lbtn';
+        b.innerHTML = (/youtube\.com|youtu\.be/.test(url) ? yt : web) + '<span></span>';
+        b.lastChild.textContent = label;
+        b.onclick = () => window.open(url, '_blank', 'noopener');
+        box.querySelector('.lbtns').appendChild(b);
+      });
+      c.appendChild(box);
+    });
+    cols.appendChild(c);
+  });
+  page.appendChild(cols);
+  // settings gear under the last column
+  const gear = document.createElement('button'); gear.className = 'lset';
+  gear.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Settings</span>';
+  gear.onclick = openLinkEditor;
+  cols.lastChild.appendChild(gear);
+  return page;
+}
+// deck slide 19 (Yesterday / Today / Tomorrow boxes): day tiles snap into the white boxes; panels and labels stay put
+SLIDES[19] = { lock: [0, 1, 2, 3, 4, 5, 6, 14, 15, 16], slotPiece: e => e.t === 'sp' && /day$/.test(plain(e.html)) && e.x > 900,
+  slots: [{ x: 456, y: 196.5 }, { x: 465.5, y: 462.5 }, { x: 465.5, y: 725.5 }], slotScale: 1, slotReach: 260,
+  title: 'Yesterday, Today, Tomorrow' };
+SLIDES[14] = { draw: true, drawOn: true, hide: [0], hook: letterSetup, onInk: letterInk, title: 'Letter of the Day' };
+// sight word slide (deck 16): blank boxes to write in
+SLIDES[16] = { draw: true, drawOn: true, hide: [0, 1], title: 'Sight Word of the Day' };
+/* ---------- slide 14: draw a letter -> recognise it -> show two pictures ---------- */
+const LETTER_PICS = {"A":[{"w":"apple","img":"letters/apple.webp"},{"w":"ant","img":"letters/ant.webp"}],"B":[{"w":"bear","img":"letters/bear.webp"},{"w":"banana","img":"letters/banana.webp"}],"C":[{"w":"cat","img":"letters/cat.webp"},{"w":"car","img":"letters/car.webp"}],"D":[{"w":"dog","img":"letters/dog.webp"},{"w":"duck","img":"letters/duck.webp"}],"E":[{"w":"egg","img":"letters/egg.webp"},{"w":"elephant","img":"letters/elephant.webp"}],"F":[{"w":"fish","img":"letters/fish.webp"},{"w":"frog","img":"letters/frog.webp"}],"G":[{"w":"grapes","img":"letters/grapes.webp"},{"w":"goat","img":"letters/goat.webp"}],"H":[{"w":"hat","img":"letters/hat.webp"},{"w":"horse","img":"letters/horse.webp"}],"I":[{"w":"ice cream","img":"letters/ice-cream.webp"},{"w":"island","img":"letters/island.webp"}],"J":[{"w":"jellyfish","img":"letters/jellyfish.webp"},{"w":"juice","img":"letters/juice.webp"}],"K":[{"w":"kite","img":"letters/kite.webp"},{"w":"kangaroo","img":"letters/kangaroo.webp"}],"L":[{"w":"lion","img":"letters/lion.webp"},{"w":"lemon","img":"letters/lemon.webp"}],"M":[{"w":"monkey","img":"letters/monkey.webp"},{"w":"moon","img":"letters/moon.webp"}],"N":[{"w":"nest","img":"letters/nest.webp"},{"w":"nose","img":"letters/nose.webp"}],"O":[{"w":"octopus","img":"letters/octopus.webp"},{"w":"orange","img":"letters/orange.webp"}],"Q":[{"w":"queen","img":"letters/queen.webp"},{"w":"quarter","img":"letters/quarter.webp"}],"R":[{"w":"rabbit","img":"letters/rabbit.webp"},{"w":"rainbow","img":"letters/rainbow.webp"}],"S":[{"w":"sun","img":"letters/sun.webp"},{"w":"snake","img":"letters/snake.webp"}],"T":[{"w":"tiger","img":"letters/tiger.webp"},{"w":"tree","img":"letters/tree.webp"}],"U":[{"w":"umbrella","img":"letters/umbrella.webp"},{"w":"unicorn","img":"letters/unicorn.webp"}],"V":[{"w":"violin","img":"letters/violin.webp"},{"w":"volcano","img":"letters/volcano.webp"}],"W":[{"w":"whale","img":"letters/whale.webp"},{"w":"watermelon","img":"letters/watermelon.webp"}],"X":[{"w":"x-ray","img":"letters/x-ray.webp"},{"w":"xylophone","img":"letters/xylophone.svg"}],"Y":[{"w":"yo-yo","img":"letters/yo-yo.webp"},{"w":"yarn","img":"letters/yarn.webp"}],"Z":[{"w":"zebra","img":"letters/zebra.webp"},{"w":"zero","img":"letters/zero.webp"}]};
+const LETTER_BOX = { x0: 203, y0: 239, x1: 521, y1: 469 };   // the "letter" box (slide points)
+// yellow highlight hugs the word it marks (slide points, measured from the slide art)
+const HL = { vowel: { cx: 359.5, cy: 600.5, w: 189, h: 58 }, consonant: { cx: 360, cy: 701, w: 304, h: 58 } };
+let letterTimer = 0;
+function letterSetup() {
+  document.body.classList.add('letter-slide');
+  initAZ();
+  const st = slideState(14);
+  applyLetter(st.letter || null, false, st.alts || []);   // empty until a letter is drawn
+  // once the ink layer is up, an empty letter box means no pictures (covers old saved letters and erased boxes)
+  setTimeout(() => { if (st.letter && !letterBoxHasInk()) chooseLetter(null, []); }, 0);
+}
+// true if any ink pixels remain inside the letter box (eraser-aware)
+function letterBoxHasInk() {
+  if (!ink.ctx || !ink.cv) return false;
+  const r = ink.cv.width / CW, k = 4 / 3, b = LETTER_BOX;
+  const x = Math.round(b.x0 * k * r), y = Math.round(b.y0 * k * r), w = Math.round((b.x1 - b.x0) * k * r), h = Math.round((b.y1 - b.y0) * k * r);
+  const d = ink.ctx.getImageData(x, y, w, h).data;
+  for (let i = 3; i < d.length; i += 16) if (d[i] > 40) return true;
+  return false;
+}
+function picsFor(L) {
+  if (L === 'P') return [{ w: 'pizza', img: 'letters/pizza.webp' }, { w: 'pig', img: 'letters/pig.webp' }];   // same 3D style as the other letters
+  return LETTER_PICS[L] || [];
+}
+function applyLetter(L, pop, alts) {
+  const hlEl = stage.querySelector('#pieces > .el[data-k="1"]');
+  [3, 4].forEach(k => { const el = stage.querySelector(`#pieces > .el[data-k="${k}"]`); if (el) el.style.display = L ? '' : 'none'; });
+  if (hlEl) hlEl.style.display = L ? '' : 'none';
+  if (!L) return;
+  $('letterNow').textContent = L;
+  const box = $('letterAlts'); box.innerHTML = '';
+  (alts || []).filter(a => a !== L).slice(0, 3).forEach(a => {
+    const b = document.createElement('button'); b.className = 'alt'; b.textContent = a;
+    b.onclick = () => chooseLetter(a, alts);
+    box.appendChild(b);
+  });
+  // two equal picture slots, centred as a pair in the picture box (x 556-1223, y 533-763), captions inside the box
+  const PB = { cx: 889.5, top: 543, w: 240, h: 175, gap: 60 };
+  picsFor(L).forEach((pc, i) => {
+    const el = stage.querySelector(`#pieces > .el[data-k="${3 + i}"]`); if (!el) return;
+    el.style.translate = '';
+    el.style.left = (PB.cx + (i === 0 ? -(PB.gap / 2 + PB.w) : PB.gap / 2)) + 'pt';
+    el.style.top = PB.top + 'pt'; el.style.width = PB.w + 'pt'; el.style.height = PB.h + 'pt';
+    const img = el.querySelector('img'); img.src = pc.img; img.style.objectFit = 'contain';
+    let cap = el.querySelector('.cap'); if (!cap) { cap = document.createElement('div'); cap.className = 'cap'; el.appendChild(cap); }
+    cap.textContent = pc.w;
+    if (pop) { el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+  });
+  // vowel / consonant highlight
+  const hl = stage.querySelector('#pieces > .el[data-k="1"]');
+  if (hl) {
+    const g = HL['AEIOU'.includes(L) ? 'vowel' : 'consonant'];
+    hl.style.transition = pop ? 'left .3s ease, top .3s ease, width .3s ease, height .3s ease' : '';
+    hl.style.translate = '';
+    hl.style.left = (g.cx - g.w / 2) + 'pt'; hl.style.top = (g.cy - g.h / 2) + 'pt';
+    hl.style.width = g.w + 'pt'; hl.style.height = g.h + 'pt';
+  }
+}
+function chooseLetter(L, alts) {
+  const st = slideState(14); st.letter = L; st.alts = alts; save();
+  applyLetter(L, true, alts);
+  $('azGrid').classList.remove('open');
+}
+function letterInk() {
+  clearTimeout(letterTimer);
+  letterTimer = setTimeout(() => {
+    const k = 4 / 3, b = LETTER_BOX;
+    const strokes = visibleItems().filter(s => !s.e).map(s => s.p).filter(p => {
+      const inside = p.filter(([x, y]) => x / k > b.x0 && x / k < b.x1 && y / k > b.y0 && y / k < b.y1).length;
+      return inside > p.length / 2;
+    });
+    if (!window.LetterRec) return;
+    if (!strokes.length || !letterBoxHasInk()) { if (slideState(14).letter) chooseLetter(null, []); return; }   // letter box empty / erased
+    const res = LetterRec.recognize(strokes, (b.x1 - b.x0) * k);
+    if (!res.length) return;
+    chooseLetter(res[0].letter, res.slice(0, 4).map(r => r.letter));
+  }, 900);
+}
+let azReady = false;
+function initAZ() {   // A–Z picker for corrections
+  if (azReady) return; azReady = true;
+  const g = $('azGrid');
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach(L => {
+    const b = document.createElement('button'); b.className = 'alt'; b.textContent = L;
+    b.onclick = () => chooseLetter(L, slideState(14).alts || []);
+    g.appendChild(b);
+  });
+  $('azBtn').onclick = () => g.classList.toggle('open');
+}
+
+/* ---------- snap-to-square (ten frames) ---------- */
+const isDot = e => e.t === 'sp' && e.g === 'path' && e.bg === '#000000' && !e.html && Math.abs(e.w - e.h) < 3 && e.w < 60;
+function cellsOf(slide) {
+  const cells = [];
+  slide.els.forEach(e => {
+    if (e.t !== 'tbl') return;
+    let y = e.y;
+    e.rows.forEach(r => {
+      let x = e.x;
+      e.cols.forEach(w => { cells.push({ x0: x, y0: y, x1: x + w, y1: y + r.h, cx: x + w / 2, cy: y + r.h / 2, w, h: r.h }); x += w; });
+      y += r.h;
+    });
+  });
+  return cells;
+}
+// returns the square a point belongs to (inside it, or within half a square of it), else null
+function nearestCell(cells, x, y) {
+  let best = null, bd = Infinity;
+  cells.forEach(c => {
+    const dx = Math.max(c.x0 - x, 0, x - c.x1), dy = Math.max(c.y0 - y, 0, y - c.y1);
+    if (dx > c.w / 2 || dy > c.h / 2) return;
+    const d = Math.hypot(x - c.cx, y - c.cy);
+    if (d < bd) { bd = d; best = c; }
+  });
+  return best;
+}
+SLIDES[10] = { draw: true, snap: isDot, hide: [3, 5, 208], fresh: true };
+// each ten frame shows its running total (10, 20, 30 ...) to its left once all ten squares hold a dot
+SLIDES[10].hook = SLIDES[10].afterDrop = function tenLabels() {
+  const s = D.slides[idx], st = slideState(s.n), layer = stage.querySelector('#pieces'); if (!layer) return;
+  const at = (e, k) => { const p = st[k] || {}; return [e.x + (p.dx || 0) + e.w / 2, e.y + (p.dy || 0) + e.h / 2]; };
+  const dots = []; s.els.forEach((e, k) => { if (isDot(e)) dots.push(at(e, k)); });
+  const cards = s.els.filter(e => e.t === 'sp' && e.bg && e.w > 400 && e.w < 500 && e.h > 140 && e.h < 180);
+  const tables = s.els.filter(e => e.t === 'tbl').sort((a, b) => (Math.round(a.x / 200) - Math.round(b.x / 200)) || (a.y - b.y));
+  tables.forEach((t, i) => {
+    let filled = 0, total = 0, y = t.y;
+    t.rows.forEach(r => { let x = t.x; t.cols.forEach(w => { total++; if (dots.some(([px, py]) => px > x && px < x + w && py > y && py < y + r.h)) filled++; x += w; }); y += r.h; });
+    const card = cards.find(c => t.x > c.x && t.x < c.x + c.w && t.y > c.y && t.y < c.y + c.h) || { x: t.x - 130, y: t.y - 25, w: 130, h: 160 };
+    let el = layer.querySelector(`.tf-label[data-i="${i}"]`);
+    if (!el) {
+      el = document.createElement('div'); el.className = 'tf-label'; el.dataset.i = i;
+      el.style.left = pt(card.x + 4); el.style.top = pt(card.y); el.style.width = pt(t.x - card.x - 8); el.style.height = pt(card.h);
+      layer.appendChild(el);
+    }
+    const n = String(10 * (i + 1)), want = filled === total ? n : '';
+    if (el.textContent !== want) {
+      el.textContent = want;
+      el.style.fontSize = (n.length > 2 ? 54 : 71) + 'pt';
+      if (want) { el.classList.remove('pop-num'); void el.offsetWidth; el.classList.add('pop-num'); }
+    }
+  });
+};
+// slide 9: pumpkins sit centred in the date boxes (uniform size) and snap to the nearest box on release
+const isCounter = e => e.t === 'grp' && e.kids.some(k => k.img) && e.kids.some(k => /^\s*\d{1,2}\s*$/.test((k.html || '').replace(/<[^>]+>/g, '')));
+SLIDES[9] = Object.assign(SLIDES[9] || {}, { snap: isCounter, fit: 0.84, cellTop: 162 });
+
+/* ---------- place-value counter: rods in the tens box, cubes in the ones box ---------- */
+function placeValue(spec) {
+  const inBox = (b, x, y) => x > b.x0 && x < b.x1 && y > b.y0 && y < b.y1;
+  const setText = (k, v) => {
+    const box = stage.querySelector(`#pieces > .el[data-k="${k}"]`);
+    const el = box && box.querySelector('.txt span');
+    if (!el) return;
+    const p = el.closest('p');
+    if (el.dataset.fs == null) el.dataset.fs = parseFloat(el.style.fontSize) || 18;
+    el.textContent = v;
+    p.style.whiteSpace = 'nowrap';
+    // shrink the number until it fits on one line inside its label box
+    let fs = +el.dataset.fs; el.style.fontSize = fs + 'pt'; p.style.fontSize = fs + 'pt';
+    const avail = box.clientWidth - 6;
+    while (fs > 8 && el.getBoundingClientRect().width / (stage._sc || 1) > avail) { fs -= 2; el.style.fontSize = fs + 'pt'; p.style.fontSize = fs + 'pt'; }
+  };
+  return () => {
+    const s = D.slides[idx], st = slideState(s.n);
+    const n = spec.cols.map(() => 0);
+    s.els.forEach((e, k) => {
+      const pos = st[k] || { dx: 0, dy: 0 };
+      const cx = e.x + (pos.dx || 0) + e.w / 2, cy = e.y + (pos.dy || 0) + e.h / 2;
+      spec.cols.forEach((c, i) => { if (c.is(e) && inBox(c.box, cx, cy)) n[i]++; });
+    });
+    const any = n.some(v => v > 0);
+    spec.cols.forEach((c, i) => setText(c.label, any ? String(n[i] * c.value) : c.empty));   // each box shows its value (2 rods -> 20)
+    const total = n.reduce((t, v, i) => t + v * spec.cols[i].value, 0);
+    setText(spec.total, any ? String(total) : spec.totalEmpty);
+  };
+}
+const isRod = e => e.t === 'pic' && e.h > 150 && e.w < 40;
+const isCube = e => e.t === 'pic' && e.w < 25 && e.h < 25;
+SLIDES[11] = Object.assign(SLIDES[11] || {}, {});
+SLIDES[11].hook = SLIDES[11].afterDrop = placeValue({
+  cols: [
+    { is: isRod, value: 10, label: 1, empty: '#', box: { x0: 127, y0: 113, x1: 709, y1: 445 } },
+    { is: isCube, value: 1, label: 2, empty: '#', box: { x0: 730, y0: 113, x1: 1313, y1: 445 } }
+  ],
+  total: 0, totalEmpty: '##'
+});
+const isFlat = e => e.t === 'pic' && e.w > 150 && e.w < 250 && e.h > 150 && e.h < 250;
+SLIDES[12] = Object.assign(SLIDES[12] || {}, {});
+SLIDES[12].hook = SLIDES[12].afterDrop = placeValue({
+  cols: [
+    { is: isFlat, value: 100, label: 161, empty: '#', box: { x0: 122, y0: 113, x1: 506, y1: 445 } },
+    { is: isRod, value: 10, label: 163, empty: '#', box: { x0: 521, y0: 113, x1: 905, y1: 445 } },
+    { is: isCube, value: 1, label: 162, empty: '#', box: { x0: 920, y0: 113, x1: 1303, y1: 445 } }
+  ],
+  total: 0, totalEmpty: '##'
+});
+/* ---------- slide 9: live month calendar ---------- */
+// month index -> deck slide holding that month's graphics (no July/August slides: borrow June / September)
+const MONTH_SRC = { 0: 24, 1: 25, 2: 26, 3: 27, 4: 28, 5: 29, 6: 29, 7: 51, 8: 51, 9: 9, 10: 22, 11: 23 };
+const MONTH_NAMES = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+const TOOLS_CENTER = { x: 1346, y: 528 };          // where the counter stack sits in the Tools box
+const plain = h => (h || '').replace(/<[^>]+>/g, '').replace(/&#8203;|​/g, '').trim();
+const isNumText = e => e.t === 'sp' && !e.img && e.html && /^\d{1,2}$/.test(plain(e.html));
+const counterNum = e => { const k = e.kids.find(k => /^\d{1,2}$/.test(plain(k.html))); return k ? +plain(k.html) : null; };
+function buildMonth(now) {
+  const y = now.getFullYear(), m = now.getMonth(), today = now.getDate();
+  const src = JSON.parse(JSON.stringify(ORIG.find(x => x.n === MONTH_SRC[m])));
+  const oct = ORIG.find(x => x.n === 9);
+  const numTpl = oct.els.find(isNumText);                       // black date-number style from the October slide
+  const days = new Date(y, m + 1, 0).getDate(), first = new Date(y, m, 1).getDay();
+  const keep = [], counters = {};
+  let tplCounter = null;
+  src.els.forEach(e => {
+    if (isNumText(e)) return;                                   // old printed numbers
+    if (isCounter(e)) { const n = counterNum(e); if (n && !counters[n]) counters[n] = e; if (n === 1 || !tplCounter) tplCounter = e; return; }
+    if (e.html) e.html = e.html.replace('OCTOBERR', 'OCTOBER')
+      .replace(/(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER)/, MONTH_NAMES[m]);
+    keep.push(e);
+  });
+  // drop blank counter-shaped pictures left on the grid in the deck (e.g. an unnumbered apple)
+  if (tplCounter) for (let i = keep.length - 1; i >= 0; i--) {
+    const e = keep[i];
+    if (e.t === 'sp' && e.img && !e.html && e.x + e.w / 2 < 1250 && e.y > 150 &&
+        Math.abs(e.w - tplCounter.w) / tplCounter.w < 0.15 && Math.abs(e.h - tplCounter.h) / tplCounter.h < 0.15) keep.splice(i, 1);
+  }
+  // Tools box: shift the Special Day stack left and add a stack of No School stickers beside it
+  let sdTpl = null;
+  keep.forEach(e => {
+    if (e.t !== 'grp') return;
+    const t = e.kids.map(k => plain(k.html)).join('').replace(/\s+/g, '');
+    if (/^specialday$/i.test(t)) { e.x = 1262; if (!sdTpl) sdTpl = e; }
+  });
+  if (sdTpl) {
+    const txtKid = sdTpl.kids.find(k => k.html);
+    for (let i = 0; i < 10; i++) keep.push({
+      t: 'grp', x: 1348, y: 716, w: 80, h: 78, name: 'No School', noSchool: 1,
+      kids: [
+        { t: 'pic', x: 10, y: 0, w: 60, h: 50, img: 'assets/no-school.svg' },
+        Object.assign(JSON.parse(JSON.stringify(txtKid)), { x: 0, y: 50, w: 80, h: 28,
+          html: txtKid.html.replace(/>Special</, '>No<').replace(/>Day</, '>School<') })
+      ]
+    });
+  }
+  const slide = { n: 9, bg: src.bg, decor: src.decor, els: keep, title: MONTH_NAMES[m][0] + MONTH_NAMES[m].slice(1).toLowerCase() + ' ' + y,
+    stateKey: `9-${y}-${String(m + 1).padStart(2, '0')}` };
+  const cells = cellsOf(slide);
+  cells.forEach(c => { if (c.y0 < 162) { c.y0 = 162; c.h = c.y1 - c.y0; c.cy = (c.y0 + c.y1) / 2; } });
+  const cellFor = d => {                                        // 6-week months share the last row
+    let i = first + d - 1, row = Math.floor(i / 7); const col = i % 7, shared = row > 4;
+    if (shared) row = 4;
+    return { c: cells[row * 7 + col], shared, under: !shared && i + 7 < first + days && Math.floor((i + 7) / 7) > 4 };
+  };
+  // black date numbers
+  for (let d = 1; d <= days; d++) {
+    const { c, shared, under } = cellFor(d);
+    const e = JSON.parse(JSON.stringify(numTpl));
+    e.html = e.html.replace(/>\s*\d{1,2}\s*</, `>${d}<`);
+    if (shared || under) { // two dates in one box: earlier one top-left, later one bottom-right, smaller
+      e.html = e.html.replace(/font-size:([\d.]+)pt/g, (_, v) => `font-size:${(v * 0.6).toFixed(1)}pt`);
+      e.w *= 0.7; e.h *= 0.7;
+      e.x = shared ? c.x1 - e.w - 4 : c.x0 + 4; e.y = shared ? c.y1 - e.h : c.y0;
+    } else { e.x = c.cx - e.w / 2; e.y = c.cy - e.h / 2; }
+    keep.push(e);
+  }
+  // counters: past days already placed, today's on top of the Tools stack, later days underneath
+  const sameArt = (a, b) => { const ia = a.kids.find(k => k.img), ib = b.kids.find(k => k.img); if (!ia || !ib) return true;
+    return Math.abs(ia.w - ib.w) / ib.w < 0.1 && Math.abs(ia.h - ib.h) / ib.h < 0.1 && Math.abs(ia.x - ib.x) < 6 && Math.abs(ia.y - ib.y) < 6; };
+  const mk = d => {
+    const c0 = counters[d];   // use the deck's own counter only if it matches the standard shape (skips e.g. the camera apple)
+    if (c0 && tplCounter && Math.abs(c0.w - tplCounter.w) / tplCounter.w < 0.1 && Math.abs(c0.h - tplCounter.h) / tplCounter.h < 0.1 && c0.kids.length === tplCounter.kids.length && sameArt(c0, tplCounter)) return c0;
+    const e = JSON.parse(JSON.stringify(tplCounter));
+    e.kids.forEach(k => { if (/^\d{1,2}$/.test(plain(k.html))) k.html = k.html.replace(/>\s*\d{1,2}\s*</, `>${d}<`); });
+    return e;
+  };
+  const past = [], future = [];
+  for (let d = 1; d <= days; d++) (d < today ? past : future).push(d);
+  past.forEach(d => {
+    const e = mk(d), { c, shared, under } = cellFor(d);
+    e.x = c.cx - e.w / 2; e.y = c.cy - e.h / 2; e.pastLock = 1;
+    if (shared || under) e.half = shared ? 'br' : 'tl';            // two dates in one box: half-size, side by side
+    keep.push(e);
+  });
+  future.reverse().forEach(d => { const e = mk(d); e.x = TOOLS_CENTER.x - e.w / 2; e.y = TOOLS_CENTER.y - e.h / 2; keep.push(e); });
+  return slide;
+}
+function installMonth() {
+  const i = posOf(9); if (i < 0) return -1;
+  D.slides[i] = buildMonth(new Date());
+  return i;
+}
+installMonth();
+D.slides.forEach(s => { if (s.n === 9) s.els.forEach(e => { if (e.html) e.html = e.html.replace('OCTOBERR', 'OCTOBER'); }); });
+// slide 8: day cards parked off the right edge in the deck -> stack them hanging over the edge, ready to slide in
+SLIDES[8] = Object.assign(SLIDES[8] || {}, {
+  edgeShow: 122, edgeShift: 0.2, edgeScale: 0.75, edgeGap: 16, bg: 'assets/bg8-small-labels.webp',
+  // drop slots beside Yesterday / Today (between the stars) / Tomorrow; cards grow 2x when they land
+  slots: [{ x: 887, y: 205 }, { x: 887, y: 406 }, { x: 887, y: 609 }], slotScale: 2, slotReach: 230
+});
+// friendlier names for the Slides grid / bottom bar (deck slide number -> title)
+const TITLES = { 1: 'Good Morning!', 7: 'Months & Days', 8: 'Days of the Week', 10: 'Ten Frames 10–40', 11: 'Tens & Ones Day Counter',
+  12: 'Hundreds, Tens & Ones Counter', 13: 'Number of the Day', 20: 'Hundreds, Tens & Ones', 30: 'Ten Frames 130–210', 31: 'Popsicle Stick Days',
+  17: 'Body Breaks', 44: 'Daily Songs', 45: 'Mindfulness Movement', 47: 'How Are You Feeling Today?', 48: 'Feelings Thermometer' };
+D.slides.forEach(s => { if (TITLES[s.n]) s.title = TITLES[s.n]; });
+D.slides.forEach(s => {
+  const cfg = SLIDES[s.n]; if (!cfg) return;
+  if (cfg.bg) s.bg = { img: cfg.bg };
+  if (cfg.title) s.title = cfg.title;
+  if (cfg.custom) { s.els = []; s.decor = []; s.bg = { bg: '#fffaf0' }; }   // page drawn by code, not from the deck
+  if (cfg.nudge) Object.keys(cfg.nudge).forEach(k => { const e = s.els[k]; if (e) { e.x += cfg.nudge[k][0]; e.y += cfg.nudge[k][1]; } });
+  if (cfg.park) Object.keys(cfg.park).forEach(k => { const e = s.els[k]; if (e) { e.sc = cfg.park[k]; e.parked = 1; } });
+  if (!cfg.edgeShow) return;
+  const k = cfg.edgeScale || 1;
+  const cards = s.els.filter(e => e.x >= W - 2).sort((a, b) => a.y - b.y);   // keep deck order (Sun..Sat)
+  const gap = cfg.edgeGap != null ? cfg.edgeGap : 10;
+  // identical size for every card so the spacing is perfectly even
+  const cw = cards.length ? cards[0].w * k : 0, ch = cards.length ? cards[0].h * k : 0;
+  cards.forEach(e => { e.w = cw; e.h = ch; });
+  const total = cards.reduce((t, e) => t + e.h, 0) + gap * (cards.length - 1);
+  let y = (H - total) / 2;                                              // tight stack, centred on the edge
+  const x = W - cfg.edgeShow - cw * (cfg.edgeShift || 0);              // pull the stack in by a fraction of a card width
+  cards.forEach(e => { e.y = y; y += e.h + gap; e.x = x; e.edge = 1; });
+});
+// center the dots that start inside a square
+function prepSnap(s) {
+  const cfg = SLIDES[s.n]; if (!cfg || !cfg.snap) return;
+  const cells = cellsOf(s);
+  if (cfg.cellTop != null) cells.forEach(c => { if (c.y0 < cfg.cellTop) { c.y0 = cfg.cellTop; c.h = c.y1 - c.y0; c.cy = (c.y0 + c.y1) / 2; } });
+  if (cfg.fit) { // one scale for every snappable piece so they all fit the smallest box with a margin
+    const mw = Math.min(...cells.map(c => c.w)), mh = Math.min(...cells.map(c => c.h));
+    s.els.forEach(e => { if (cfg.snap(e)) e.sc = Math.min(mw * cfg.fit / e.w, mh * cfg.fit / e.h, 1); });
+  }
+  s.els.forEach(e => {
+    if (!cfg.snap(e)) return;
+    const c = nearestCell(cells, e.x + e.w / 2, e.y + e.h / 2);
+    if (c && e.x + e.w / 2 > c.x0 && e.x + e.w / 2 < c.x1 && e.y + e.h / 2 > c.y0 && e.y + e.h / 2 < c.y1) { e.x = c.cx - e.w / 2; e.y = c.cy - e.h / 2; }
+  });
+  s.els.forEach(e => {
+    if (!e.half || !e.sc) return;
+    const c = nearestCell(cells, e.x + e.w / 2, e.y + e.h / 2); if (!c) return;
+    e.sc *= 0.5;
+    const qx = e.half === 'br' ? c.x0 + c.w * 0.72 : c.x0 + c.w * 0.28, qy = e.half === 'br' ? c.y0 + c.h * 0.7 : c.y0 + c.h * 0.32;
+    e.x = qx - e.w / 2; e.y = qy - e.h / 2;
+  });
+  s._cells = cells;
+}
+D.slides.forEach(prepSnap);
+// calendar slides: printed date numbers sit under every piece and never move
+[9, 22, 23, 24, 25, 26, 27, 28, 29, 51].forEach(n => SLIDES[n] = Object.assign(SLIDES[n] || {}, { datesUnder: true }));
+const isDateNum = e => e.t === 'sp' && !e.img && e.html && /^\s*\d{1,2}\s*$/.test(e.html.replace(/<[^>]+>/g, '').replace(/&#8203;|​/g, ''));
+
+/* ---------- rendering ---------- */
+const pt = v => (+v).toFixed(2) + 'pt';
+const fixFonts = h => h ? h.replace(/font-family:'Calibri'/g, "font-family:'Calibri','Carlito',sans-serif")
+  .replace(/font-family:'Century Gothic'/g, "font-family:'Century Gothic','Questrial',sans-serif") : h;
+
+function box(el, e) {
+  el.style.left = pt(e.x); el.style.top = pt(e.y);
+  el.style.width = pt(Math.max(e.w, 0.5)); el.style.height = pt(Math.max(e.h, 0.5));
+  if (e.rot) el.style.rotate = e.rot + 'deg';
+}
+function flip(g, e) { if (e.fh || e.fv) g.style.transform = `scale(${e.fh ? -1 : 1},${e.fv ? -1 : 1})`; }
+
+function heartPath(w, h) {
+  return `M${w/2} ${h*0.25} C${w*0.5} ${h*0.1} ${w*0.1} ${-h*0.05} ${w*0.02} ${h*0.3} C${-w*0.05} ${h*0.55} ${w*0.3} ${h*0.75} ${w/2} ${h} C${w*0.7} ${h*0.75} ${w*1.05} ${h*0.55} ${w*0.98} ${h*0.3} C${w*0.9} ${-h*0.05} ${w*0.5} ${h*0.1} ${w/2} ${h*0.25}Z`;
+}
+
+function mkImg(src, e, g) {
+  const img = document.createElement('img'); img.src = src; img.alt = ''; img.draggable = false; img.decoding = 'async';
+  if (e.fill) { // stretch offsets: image box relative to shape (negative = extends beyond, clipped)
+    const [l, t, r, b] = e.fill; img.className = 'fill';
+    img.style.left = (l * 100) + '%'; img.style.top = (t * 100) + '%';
+    img.style.width = ((1 - l - r) * 100) + '%'; img.style.height = ((1 - t - b) * 100) + '%';
+    g.classList.add('clip');
+  }
+  return img;
+}
+function renderEl(e) {
+  const el = document.createElement('div');
+  el.className = 'el';
+  box(el, e);
+  if (e.t === 'pic') {
+    const g = document.createElement('div'); g.className = 'gfx';
+    g.appendChild(mkImg(e.img, e, g)); flip(g, e);
+    if (e.ln) g.style.outline = `${pt(e.lw)} solid ${e.ln}`;
+    el.appendChild(g);
+  } else if (e.t === 'sp') {
+    const g = document.createElement('div'); g.className = 'gfx'; flip(g, e);
+    const geo = e.g;
+    if (geo === 'path' || geo === 'heart') {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', `0 0 ${e.w} ${e.h}`); svg.setAttribute('preserveAspectRatio', 'none');
+      svg.style.width = '100%'; svg.style.height = '100%';
+      const p = document.createElementNS(svg.namespaceURI, 'path');
+      p.setAttribute('d', geo === 'heart' ? heartPath(e.w, e.h) : e.d);
+      p.setAttribute('fill', e.bg && !e.bg.startsWith('linear') ? e.bg : 'none');
+      if (e.ln) { p.setAttribute('stroke', e.ln); p.setAttribute('stroke-width', e.lw); }
+      if (e.img) {
+        const id = 'c' + Math.random().toString(36).slice(2);
+        svg.innerHTML = `<defs><clipPath id="${id}"><path d="${p.getAttribute('d')}"/></clipPath></defs><image href="${e.img}" width="${e.w}" height="${e.h}" preserveAspectRatio="none" clip-path="url(#${id})"/>`;
+      }
+      svg.appendChild(p); g.appendChild(svg);
+    } else {
+      if (e.img) g.appendChild(mkImg(e.img, e, g));
+      else if (e.bg) g.style.background = e.bg;
+      if (e.ln) g.style.border = `${pt(e.lw)} ${e.dash ? 'dashed' : 'solid'} ${e.ln}`;
+      if (geo === 'rr') g.style.borderRadius = pt(e.rad);
+      else if (geo === 'ellipse') g.style.borderRadius = '50%';
+      else if (geo === 'bevel') g.style.boxShadow = 'inset 0 0 0 4pt rgba(255,255,255,.35), inset 0 0 0 7pt rgba(0,0,0,.12)';
+      else if (geo === 'roundRect') g.style.borderRadius = '16%';
+    }
+    if (e.op != null) g.style.opacity = e.op;
+    el.appendChild(g);
+    if (e.html) {
+      const t = document.createElement('div'); t.className = 'txt';
+      const bp = e.bp;
+      t.style.padding = `${pt(bp.t)} ${pt(bp.r)} ${pt(bp.b)} ${pt(bp.l)}`;
+      t.style.justifyContent = { t: 'flex-start', ctr: 'center', b: 'flex-end' }[bp.anchor] || 'flex-start';
+      if (bp.nowrap) t.style.whiteSpace = 'nowrap';
+      t.innerHTML = fixFonts(e.html);
+      if (bp.nowrap) t.querySelectorAll('p').forEach(p => p.style.whiteSpace = 'pre');
+      el.appendChild(t);
+    }
+  } else if (e.t === 'line') {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const x1 = e.fh ? e.w : 0, x2 = e.fh ? 0 : e.w, y1 = e.fv ? e.h : 0, y2 = e.fv ? 0 : e.h;
+    const c = e.ln || '#000', lw = e.lw || 1;
+    svg.setAttribute('viewBox', `0 0 ${Math.max(e.w, .5)} ${Math.max(e.h, .5)}`);
+    svg.setAttribute('preserveAspectRatio', 'none');
+    const id = 'a' + Math.random().toString(36).slice(2);
+    svg.innerHTML = `<defs><marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${c}"/></marker></defs>
+      <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="${lw}" ${e.dash ? 'stroke-dasharray="6 4"' : ''} ${e.arrowE ? `marker-end="url(#${id})"` : ''} ${e.arrowS ? `marker-start="url(#${id})"` : ''} vector-effect="non-scaling-stroke"/>`;
+    el.appendChild(svg);
+  } else if (e.t === 'tbl') {
+    const tb = document.createElement('div'); tb.className = 'tbl';
+    const cw = e.cols.reduce((a, b) => a + b, 0) || 1, rh = e.rows.reduce((a, r) => a + r.h, 0) || 1;
+    const kx = 1, ky = 1; // Google exports bogus frame sizes; grid sizes are authoritative
+    el.style.width = pt(cw); el.style.height = pt(rh);
+    const xs = [0]; e.cols.forEach(w => xs.push(xs[xs.length - 1] + w * kx));
+    const ys = [0]; e.rows.forEach(r => ys.push(ys[ys.length - 1] + r.h * ky));
+    const S = { l: 'Left', r: 'Right', t: 'Top', b: 'Bottom' };
+    e.rows.forEach((r, ri) => r.cells.forEach((c, ci) => {
+      if (!c) return;
+      const d = document.createElement('div'); d.className = 'cell';
+      const x2 = xs[Math.min(ci + (c.cs || 1), xs.length - 1)], y2 = ys[Math.min(ri + (c.rs || 1), ys.length - 1)];
+      d.style.left = pt(xs[ci]); d.style.top = pt(ys[ri]); d.style.width = pt(x2 - xs[ci]); d.style.height = pt(y2 - ys[ri]);
+      if (c.bg) d.style.background = c.bg;
+      ['l', 'r', 't', 'b'].forEach(k => { if (c['b' + k]) d.style['border' + S[k]] = c['b' + k]; });
+      d.style.justifyContent = { middle: 'center', bottom: 'flex-end' }[c.va] || 'flex-start';
+      if (c.pad) d.style.padding = c.pad.map(pt).join(' ');
+      if (c.html) d.innerHTML = fixFonts(c.html);
+      tb.appendChild(d);
+    }));
+    el.appendChild(tb);
+  } else if (e.t === 'grp') {
+    const g = document.createElement('div'); g.className = 'gfx'; flip(g, e);
+    e.kids.forEach(k => g.appendChild(renderEl(k)));
+    el.appendChild(g);
+  }
+  return el;
+}
+
+/* which elements can be dragged */
+function isMovable(e, cfg, idx) {
+  if (cfg.lock && cfg.lock.includes(idx)) return false;
+  if (cfg.free && cfg.free.includes(idx)) return true;
+  if (e.t === 'tbl') return false;
+  const area = (e.w * e.h) / (W * H);
+  if (area > 0.45) return false;                 // backgrounds, big frames
+  if (e.t === 'line') return false;
+  return true;
+}
+const offSlide = e => e.x >= W - 2 || e.y >= H - 2 || e.x + e.w <= 2 || e.y + e.h <= 2;
+
+/* ---------- slide navigation ---------- */
+let idx = 0, moveOn = true;
+const N = D.slides.length;
+document.getElementById('tot').textContent = N;
+
+function slideState(n) {
+  const s = D.slides.find(x => x.n === n), key = (s && s.stateKey) || n;
+  return saved[key] || (saved[key] = {});
+}
+
+function show(i) {
+  idx = (i + N) % N;
+  const s = D.slides[idx], n = s.n, cfg = SLIDES[n] || {};
+  if (cfg.fresh) { delete saved[s.stateKey || n]; save(); }   // these slides open clean every time
+  stage.innerHTML = ''; stage._spot = null;
+  document.body.classList.remove('letter-slide'); const azg = document.getElementById('azGrid'); if (azg) azg.classList.remove('open');
+  // background
+  const bg = document.createElement('div'); bg.className = 'layer';
+  if (s.bg.img) { bg.style.background = `url(${s.bg.img}) center/100% 100% no-repeat`; }
+  else bg.style.background = s.bg.bg || '#fff';
+  stage.appendChild(bg);
+  const dec = document.createElement('div'); dec.className = 'layer'; dec.style.pointerEvents = 'none';
+  s.decor.forEach(e => dec.appendChild(renderEl(e)));
+  stage.appendChild(dec);
+  const layer = document.createElement('div'); layer.className = 'layer'; layer.id = 'pieces';
+  stage.appendChild(layer);
+  if (cfg.custom === 'links') { const lp = renderLinks(); layer.appendChild(lp); fitLinks(lp); if (document.fonts) document.fonts.ready.then(() => fitLinks(lp)); }
+  if (cfg.custom === 'feelings') layer.appendChild(renderFeelings());
+  if (cfg.custom === 'solar') layer.appendChild(renderSolar());
+  if (cfg.custom === 'weatherfeel') layer.appendChild(renderWeatherFeel());
+  const st = slideState(n);
+  const trayItems = [];
+  s.els.forEach((e, k) => {
+    const isOff = offSlide(e);
+    if (isOff && !(e.t === 'pic' || e.t === 'grp' || (e.t === 'sp' && e.img))) return; // off-slide notes
+    if (cfg.hide && cfg.hide.includes(k)) return;
+    if (e.t === 'gone') return;
+    const el = renderEl(e);
+    el.dataset.k = k;
+    el.dataset.z = k;
+    el.style.zIndex = k + 1;
+    let lk = e.link;
+    if (!lk) { // a piece whose text carries one link target (e.g. BACK buttons) acts as that link everywhere
+      const t = new Set([...el.querySelectorAll('a.lk')].map(a => a.dataset.url ? 'u' + a.dataset.url : 's' + a.dataset.slide));
+      if (t.size === 1) { const v = [...t][0]; lk = v[0] === 'u' ? { url: v.slice(1) } : { slide: +v.slice(1) }; }
+    }
+    if (lk) { el.classList.add('haslink'); el.dataset.link = JSON.stringify(lk); }
+    const pos = e.pastLock ? undefined : st[k];
+    if (isOff) {
+      el.dataset.off = '1';
+      if (!pos) { el.style.display = 'none'; trayItems.push({ k, e, el }); }
+    }
+    if (e.sc) el.style.scale = e.sc;
+    if (pos) { el.style.translate = `${pt(pos.dx)} ${pt(pos.dy)}`; if (pos.z) el.style.zIndex = pos.z; if (pos.s) el.style.scale = pos.s; }
+    if (cfg.datesUnder && isDateNum(e)) { el.style.zIndex = 500; el.style.pointerEvents = 'none'; }
+    else if (isOff || isMovable(e, cfg, k)) {
+      // movable pieces live in a layer above fixed slide parts (and above date numbers)
+      el.classList.add('drag');
+      if (cfg.datesUnder) el.style.zIndex = Math.max(1000 + k + 1, (pos && pos.z) || 0);
+    }
+    layer.appendChild(el);
+  });
+  buildTray(trayItems);
+  if (cfg.hook) cfg.hook(stage, s);
+  if (cfg.datesUnder) fitStickers();
+  inkSetup(cfg, n);
+  document.getElementById('cur').textContent = idx + 1;
+  document.getElementById('title').textContent = s.title || '';
+  try { history.replaceState(null, '', '#' + (idx + 1)); } catch (e) {}
+  setTimeout(() => [idx + 1, idx - 1].forEach(j => preload(D.slides[(j + N) % N])), 300);
+  fit();
+}
+
+// Birthday / Special Day stickers: no mid-word breaks, shrink text until it fits its box
+function fitStickers() {
+  stage.querySelectorAll('#pieces .el .el .txt').forEach(t => {
+    if (!/^(birthday|specialday|noschool)$/i.test(t.textContent.replace(/\s+/g, ''))) return;
+    const ps = [...t.querySelectorAll('p')], spans = [...t.querySelectorAll('span')];
+    ps.forEach(p => { p.style.overflowWrap = 'normal'; p.style.wordBreak = 'keep-all'; p.style.lineHeight = '1'; p.style.whiteSpace = 'nowrap'; });
+    t.style.justifyContent = 'center';
+    let fs = parseFloat(spans[0] && spans[0].style.fontSize) || 20;
+    const over = () => t.scrollWidth > t.clientWidth + 1 || t.scrollHeight > t.clientHeight + 1;
+    while (fs > 5 && over()) { fs -= 1; spans.forEach(x => x.style.fontSize = fs + 'pt'); ps.forEach(p => p.style.fontSize = fs + 'pt'); }
+  });
+}
+const preloaded = new Set();
+function preload(s) {
+  if (preloaded.has(s.n)) return; preloaded.add(s.n);
+  const walk = a => a.forEach(e => { if (e.img) { const i = new Image(); i.src = e.img; } if (e.kids) walk(e.kids); });
+  if (s.bg.img) { const i = new Image(); i.src = s.bg.img; }
+  walk(s.els); walk(s.decor);
+}
+function fit() {
+  const r = viewport.getBoundingClientRect();
+  const sw = W * 4 / 3, sh = H * 4 / 3; // pt -> css px
+  const sc = Math.min(r.width / sw, r.height / sh);
+  stage.style.transform = `scale(${sc})`;
+  stage.style.left = (r.left + (r.width - sw * sc) / 2) + 'px';
+  stage.style.top = (r.top + (r.height - sh * sc) / 2) + 'px';
+  stage.style.position = 'fixed';
+  stage._sc = sc;
+}
+addEventListener('resize', fit);
+
+/* ---------- tray (pieces placed off the slide in the deck) ---------- */
+const tray = document.getElementById('tray'), trayList = document.getElementById('trayList');
+function buildTray(items) {
+  trayList.innerHTML = '';
+  document.body.classList.toggle('has-tray', items.length > 0);
+  document.getElementById('trayCount').textContent = items.length;
+  if (!items.length) { tray.classList.remove('open'); document.body.classList.remove('tray-open'); }
+  items.forEach(({ k, e, el }) => {
+    const b = document.createElement('button');
+    const img = document.createElement('img');
+    img.src = e.img || (e.kids && (e.kids.find(x => x.img) || {}).img) || '';
+    b.appendChild(img);
+    b.onclick = () => {
+      // drop into the middle of the slide
+      const dx = (W - e.w) / 2 - e.x + (Math.random() - .5) * 120, dy = (H - e.h) / 2 - e.y + (Math.random() - .5) * 80;
+      const z = topZ();
+      slideState(D.slides[idx].n)[k] = { dx, dy, z }; save();
+      el.style.translate = `${pt(dx)} ${pt(dy)}`; el.style.zIndex = z; el.style.display = '';
+      b.remove();
+      const left = trayList.children.length;
+      document.getElementById('trayCount').textContent = left;
+      if (!left) { tray.classList.remove('open'); document.body.classList.remove('has-tray', 'tray-open'); }
+    };
+    trayList.appendChild(b);
+  });
+}
+const toggleTray = () => document.body.classList.toggle('tray-open', tray.classList.toggle('open'));
+document.getElementById('trayBtn').onclick = toggleTray;
+document.getElementById('trayClose').onclick = () => { tray.classList.remove('open'); document.body.classList.remove('tray-open'); };
+
+function topZ() {
+  let z = 0;
+  stage.querySelectorAll('#pieces > .el').forEach(e => z = Math.max(z, +e.style.zIndex || 0));
+  return z + 1;
+}
+
+/* ---------- drag engine (multi-touch: each finger drags its own piece) ---------- */
+const drags = new Map();
+const TAP = 10; // px
+stage.addEventListener('pointerdown', ev => {
+  const el = ev.target.closest('#pieces > .el');
+  if (!el) return;
+  const canDrag = moveOn && el.classList.contains('drag') && !el.classList.contains('spotlit');
+  const st = slideState(D.slides[idx].n)[el.dataset.k] || { dx: 0, dy: 0 };
+  drags.set(ev.pointerId, { el, sx: ev.clientX, sy: ev.clientY, dx0: st.dx || 0, dy0: st.dy || 0, moved: false, canDrag, target: ev.target });
+  if (canDrag) {
+    try { el.setPointerCapture(ev.pointerId); } catch (e) {}
+    el.style.zIndex = topZ();
+  }
+  ev.preventDefault();
+});
+stage.addEventListener('pointermove', ev => {
+  const d = drags.get(ev.pointerId); if (!d) return;
+  const mx = ev.clientX - d.sx, my = ev.clientY - d.sy;
+  if (!d.moved && Math.hypot(mx, my) > TAP) d.moved = true;
+  if (!d.moved || !d.canDrag) return;
+  d.el.classList.add('dragging');
+  const k = 0.75 / stage._sc; // css px on screen -> pt
+  d.dx = d.dx0 + mx * k; d.dy = d.dy0 + my * k;
+  d.el.style.translate = `${pt(d.dx)} ${pt(d.dy)}`;
+});
+function end(ev) {
+  const d = drags.get(ev.pointerId); if (!d) return;
+  drags.delete(ev.pointerId);
+  d.el.classList.remove('dragging');
+  if (d.moved && d.canDrag) {
+    const sl = D.slides[idx], cfg = SLIDES[sl.n] || {}, e = sl.els[d.el.dataset.k];
+    if (cfg.snap && sl._cells && e && cfg.snap(e)) {
+      const c = nearestCell(sl._cells, e.x + d.dx + e.w / 2, e.y + d.dy + e.h / 2);
+      if (c) {
+        d.dx = c.cx - e.w / 2 - e.x; d.dy = c.cy - e.h / 2 - e.y;
+        d.el.classList.add('snapping');
+        d.el.style.translate = `${pt(d.dx)} ${pt(d.dy)}`;
+        setTimeout(() => d.el.classList.remove('snapping'), 200);
+      }
+    }
+    let slot = null;
+    if (cfg.slots && e && (e.edge || (cfg.slotPiece && cfg.slotPiece(e)))) {
+      const cx = e.x + d.dx + e.w / 2, cy = e.y + d.dy + e.h / 2;
+      let bd = Infinity;
+      cfg.slots.forEach((sp, i) => { const dd = Math.hypot(cx - sp.x, (cy - sp.y) * 1.6); if (dd < bd && dd < (cfg.slotReach || 200)) { bd = dd; slot = i; } });
+      d.el.classList.add('snapping');
+      setTimeout(() => d.el.classList.remove('snapping'), 220);
+      if (slot != null) {
+        const sp = cfg.slots[slot];
+        d.dx = sp.x - e.w / 2 - e.x; d.dy = sp.y - e.h / 2 - e.y;
+        d.el.style.translate = `${pt(d.dx)} ${pt(d.dy)}`;
+        d.el.style.scale = cfg.slotScale || 1;
+        // a card already sitting in this slot goes back to the stack
+        const st = slideState(sl.n);
+        Object.keys(st).forEach(kk => {
+          if (kk === d.el.dataset.k || !st[kk] || st[kk].slot !== slot) return;
+          delete st[kk];
+          const o = stage.querySelector(`#pieces > .el[data-k="${kk}"]`);
+          if (o) { o.classList.add('snapping'); o.style.translate = ''; o.style.scale = ''; setTimeout(() => o.classList.remove('snapping'), 220); }
+        });
+      } else d.el.style.scale = '';
+    }
+    slideState(sl.n)[d.el.dataset.k] = { dx: d.dx, dy: d.dy, z: +d.el.style.zIndex };
+    if (slot != null) Object.assign(slideState(sl.n)[d.el.dataset.k], { slot, s: cfg.slotScale || 1 });
+    if (cfg.dressZone && e && e.parked) {   // parked (shrunk) clothes go full size on the animal, back to small elsewhere
+      const cx = e.x + d.dx + e.w / 2, on = cx > cfg.dressZone.x0 && cx < cfg.dressZone.x1, ps = slideState(sl.n)[d.el.dataset.k];
+      ps.s = on ? 1 : e.sc; d.el.classList.add('snapping'); d.el.style.scale = ps.s; setTimeout(() => d.el.classList.remove('snapping'), 220);
+    }
+    if (cfg.box && e && cfg.boxPiece(e)) {   // drop zone that arranges everything inside it
+      const b = cfg.box, cx = e.x + d.dx + e.w / 2, cy = e.y + d.dy + e.h / 2, ps = slideState(sl.n)[d.el.dataset.k];
+      if (cx > b.x && cx < b.x + b.w && cy > b.y && cy < b.y + b.h) { if (!ps.inBox) ps.inBox = Date.now(); }
+      else { delete ps.inBox; delete ps.s; d.el.style.scale = ''; }
+      layoutBox(sl, cfg);
+    }
+    save();
+    if (cfg.afterDrop) cfg.afterDrop();
+  } else if (!d.moved && ev.type === 'pointerup') {
+    // tap: follow text link first, then element link
+    const a = d.target.closest && d.target.closest('a.lk');
+    let lk = null;
+    if (a) lk = a.dataset.url ? { url: a.dataset.url } : { slide: +a.dataset.slide };
+    else if (d.el.dataset.link) lk = JSON.parse(d.el.dataset.link);
+    const sc = SLIDES[D.slides[idx].n] || {}, se = D.slides[idx].els[d.el.dataset.k];
+    if (!lk && sc.spotlight && se && sc.spotlight(se)) { spotlight(d.el, se); return; }
+    if (lk) follow(lk, d.el);
+  }
+}
+/* centre every piece sitting in a drop box as one tidy grid, scaled to fit */
+function layoutBox(sl, cfg) {
+  const b = cfg.box, st = slideState(sl.n);
+  const items = sl.els.map((e, k) => ({ e, k, p: st[k] })).filter(i => i.p && i.p.inBox).sort((a, c) => a.p.inBox - c.p.inBox);
+  const n = items.length; if (!n) return;
+  const w = items[0].e.w, h = items[0].e.h, gap = b.gap, aw = b.w - 2 * b.pad, ah = b.h - 2 * b.pad;
+  let best = { s: 0, cols: 1 };
+  for (let cols = 1; cols <= n; cols++) {
+    const rows = Math.ceil(n / cols);
+    const s = Math.min(b.max, (aw - gap * (cols - 1)) / (cols * w), (ah - gap * (rows - 1)) / (rows * h));
+    if (s > best.s) best = { s, cols };
+  }
+  const { s, cols } = best, rows = Math.ceil(n / cols), cw = w * s, ch = h * s;
+  const y0 = b.y + (b.h - (rows * ch + gap * (rows - 1))) / 2;
+  items.forEach((it, j) => {
+    const r = Math.floor(j / cols), inRow = r === rows - 1 ? n - r * cols : cols, c = j - r * cols;
+    const x0 = b.x + (b.w - (inRow * cw + gap * (inRow - 1))) / 2;
+    const cx = x0 + c * (cw + gap) + cw / 2, cy = y0 + r * (ch + gap) + ch / 2;
+    it.p.dx = cx - it.e.w / 2 - it.e.x; it.p.dy = cy - it.e.h / 2 - it.e.y; it.p.s = s;
+    const el = stage.querySelector(`#pieces > .el[data-k="${it.k}"]`);
+    if (el) { el.classList.add('snapping'); el.style.translate = `${pt(it.p.dx)} ${pt(it.p.dy)}`; el.style.scale = s; setTimeout(() => el.classList.remove('snapping'), 220); }
+  });
+}
+/* tap-to-spotlight: the piece flies to the centre, large; everything behind is muted. Tap again to send it back */
+function spotlight(el, e) {
+  if (stage.querySelector('#spot')) { closeSpot(); return; }
+  const ov = document.createElement('div'); ov.id = 'spot';
+  ov.addEventListener('pointerup', closeSpot);
+  stage.appendChild(ov);
+  el._prev = { translate: el.style.translate, scale: el.style.scale, z: el.style.zIndex };
+  el.classList.add('spotlit', 'spot-anim');
+  el.style.zIndex = 6000;
+  el.style.translate = `${pt(W / 2 - (e.x + e.w / 2))} ${pt(H / 2 - (e.y + e.h / 2))}`;
+  el.style.scale = 540 / Math.max(e.w, e.h);
+  stage._spot = el;
+}
+function closeSpot() {
+  const el = stage._spot, ov = stage.querySelector('#spot');
+  if (ov) { ov.classList.add('out'); setTimeout(() => ov.remove(), 280); }
+  if (!el) return;
+  el.style.translate = el._prev.translate; el.style.scale = el._prev.scale;
+  el.classList.remove('spotlit');
+  setTimeout(() => { el.style.zIndex = el._prev.z; el.classList.remove('spot-anim'); }, 380);
+  stage._spot = null;
+}
+stage.addEventListener('pointerup', end);
+stage.addEventListener('pointercancel', end);
+
+/* right mouse click anywhere on the slide advances (touch long-press is ignored) */
+(() => {
+  let lastType = 'mouse', lastAdvance = 0;
+  addEventListener('pointerdown', ev => { lastType = ev.pointerType; }, true);
+  viewport.addEventListener('contextmenu', ev => {
+    ev.preventDefault();
+    const type = ev.pointerType || lastType;
+    if (type !== 'mouse') return;
+    if (document.getElementById('menu').classList.contains('open')) return;
+    const now = performance.now();
+    if (now - lastAdvance < 700) return;          // one slide per click, even if the click repeats or double-fires
+    lastAdvance = now;
+    show(idx + 1);
+  });
+})();
+
+function follow(lk, el) {
+  el.classList.remove('tap-flash'); void el.offsetWidth; el.classList.add('tap-flash');
+  if (lk.url) window.open(lk.url, '_blank', 'noopener');
+  else if (lk.slide != null && !isNaN(lk.slide)) { const j = posOf(lk.slide + 1); if (j >= 0) show(j); else openMenu(); }   // links to cut slides (e.g. BACK -> old Navigation Menu) open the Slides grid
+  else if (lk.rel) show(idx + lk.rel);
+}
+
+/* ---------- toolbar ---------- */
+const $ = id => document.getElementById(id);
+$('prevBtn').onclick = () => show(idx - 1);
+$('nextBtn').onclick = () => show(idx + 1);
+$('moveBtn').onclick = () => { moveOn = !moveOn; $('moveBtn').classList.toggle('on', moveOn); toast(moveOn ? 'Pieces can be moved' : 'Pieces locked'); };
+$('resetBtn').onclick = () => { delete saved[D.slides[idx].stateKey || D.slides[idx].n]; save(); show(idx); toast('Slide reset'); };
+
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 1400); }
+
+/* menu */
+const grid = $('grid');
+D.slides.forEach((s, i) => {
+  const b = document.createElement('button'); b.className = 'thumb';
+  b.innerHTML = `<img loading="lazy" src="thumbs/${s.n}.webp" alt=""><span><i>${i + 1}</i></span>`;
+  b.querySelector('span').append(s.title || 'Slide ' + (i + 1));
+  b.onclick = () => { $('menu').classList.remove('open'); show(i); };
+  grid.appendChild(b);
+});
+function openMenu() {
+  [...grid.children].forEach((b, i) => b.classList.toggle('cur', i === idx));
+  $('menu').classList.add('open');
+  grid.children[idx].scrollIntoView({ block: 'center' });
+}
+$('menuBtn').onclick = openMenu;
+$('menuClose').onclick = () => $('menu').classList.remove('open');
+
+/* ---------- kiosk ---------- */
+let wakeLock = null;
+async function enterKiosk() {
+  document.body.classList.add('kiosk');
+  try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen({ navigationUI: 'hide' }); } catch (e) {}
+  try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+  setTimeout(fit, 60);
+}
+async function exitKiosk() {
+  document.body.classList.remove('kiosk');
+  try { if (document.fullscreenElement) await document.exitFullscreen(); } catch (e) {}
+  try { wakeLock && wakeLock.release(); wakeLock = null; } catch (e) {}
+  setTimeout(fit, 60);
+}
+$('kioskBtn').onclick = enterKiosk;
+document.addEventListener('fullscreenchange', () => setTimeout(fit, 60));
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'visible' && document.body.classList.contains('kiosk') && 'wakeLock' in navigator) {
+    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+  }
+});
+document.querySelectorAll('.kfloat [data-act]').forEach(b => b.onclick = () => {
+  const a = b.dataset.act;
+  if (a === 'prev') show(idx - 1); else if (a === 'next') show(idx + 1);
+  else if (a === 'menu') openMenu(); else if (a === 'tray') toggleTray();
+});
+// hold the lock button for 1.5s to leave kiosk (so little hands don't exit by accident)
+(() => {
+  const b = $('kExit'), hint = $('kHint'); let t0 = 0, raf = 0;
+  const step = () => { const p = Math.min(1, (performance.now() - t0) / 1500); b.style.setProperty('--p', p); if (p >= 1) { stop(); exitKiosk(); } else raf = requestAnimationFrame(step); };
+  const stop = () => { cancelAnimationFrame(raf); b.style.setProperty('--p', 0); hint.classList.remove('show'); };
+  b.addEventListener('pointerdown', e => { e.preventDefault(); t0 = performance.now(); hint.classList.add('show'); raf = requestAnimationFrame(step); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => b.addEventListener(t, stop));
+})();
+
+/* keyboard + guards */
+addEventListener('keydown', e => {
+  if (e.target && e.target.closest && e.target.closest('input, textarea, [contenteditable]')) return;   // typing in a form
+  if (document.body.classList.contains('can-draw') && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); $(e.shiftKey ? 'redoBtn' : 'undoBtn').click(); return; }
+  if (document.body.classList.contains('can-draw') && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); $('redoBtn').click(); return; }
+  if ($('menu').classList.contains('open')) { if (e.key === 'Escape') $('menu').classList.remove('open'); return; }
+  if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); show(idx + 1); }
+  else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); show(idx - 1); }
+  else if (e.key === 'Home') show(0);
+  else if (e.key === 'End') show(N - 1);
+});
+addEventListener('contextmenu', e => e.preventDefault());
+addEventListener('gesturestart', e => e.preventDefault());
+addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+
+
+/* ---------- drawing (per-slide ink, saved with the slide) ---------- */
+const COLORS = ['#111111', '#e53935', '#fb8c00', '#fdd835', '#43a047', '#1e88e5', '#8e24aa', '#ec407a', '#ffffff'];
+const SIZES = [10, 18, 30];               // canvas units (canvas is 1920 wide)
+const ERASER = 70;
+const CW = 1920, CH = 1080;
+const ink = { color: COLORS[0], size: SIZES[1], erase: false, on: false, items: [], redo: [], n: null, cv: null, ctx: null, live: new Map() };
+
+(() => {
+  const sw = $('swatches'), sz = $('sizes');
+  COLORS.forEach(c => {
+    const b = document.createElement('button'); b.className = 'sw'; b.style.background = c; b.dataset.c = c;
+    b.onclick = () => { ink.color = c; ink.erase = false; paletteSync(); };
+    sw.appendChild(b);
+  });
+  SIZES.forEach(v => {
+    const b = document.createElement('button'); b.className = 'sz'; b.dataset.s = v;
+    const i = document.createElement('i'); i.style.width = i.style.height = (v * 0.9 + 6) + 'px'; b.appendChild(i);
+    b.onclick = () => { ink.size = v; ink.erase = false; paletteSync(); };
+    sz.appendChild(b);
+  });
+  $('eraserBtn').onclick = () => { ink.erase = !ink.erase; paletteSync(); };
+  $('undoBtn').onclick = () => { if (ink.items.length) { ink.redo.push(ink.items.pop()); inkCommit(); } };
+  $('redoBtn').onclick = () => { if (ink.redo.length) { ink.items.push(ink.redo.pop()); inkCommit(); } };
+  $('clearBtn').onclick = () => { if (visibleItems().length) { ink.items.push({ clear: 1 }); ink.redo = []; inkCommit(); toast('Cleared — Undo brings it back'); } };
+  $('drawBtn').onclick = () => { ink.on = !ink.on; document.body.classList.toggle('drawing', ink.on); paletteSync(); fit(); };
+})();
+
+function paletteSync() {
+  document.querySelectorAll('.sw').forEach(b => b.classList.toggle('on', !ink.erase && b.dataset.c === ink.color));
+  document.querySelectorAll('.sz').forEach(b => { b.classList.toggle('on', !ink.erase && +b.dataset.s === ink.size); b.querySelector('i').style.background = ink.color === '#ffffff' ? '#ddd' : ink.color; });
+  $('eraserBtn').classList.toggle('on', ink.erase);
+  $('undoBtn').disabled = !ink.items.length; $('redoBtn').disabled = !ink.redo.length;
+}
+
+function visibleItems() {
+  let start = 0;
+  ink.items.forEach((it, i) => { if (it.clear) start = i + 1; });
+  return ink.items.slice(start);
+}
+
+function inkSetup(cfg, n) {
+  const can = !!cfg.draw;
+  document.body.classList.toggle('can-draw', can);
+  if (!can) { if (ink.on) { ink.on = false; document.body.classList.remove('drawing'); setTimeout(fit); } ink.cv = null; return; }
+  const cv = document.createElement('canvas'); cv.id = 'ink';
+  const res = Math.min(2, Math.max(1, Math.round((window.devicePixelRatio || 1) * (stage._sc || 1) * 1.2)));
+  cv.width = CW * res; cv.height = CH * res;
+  stage.appendChild(cv);
+  ink.cv = cv; ink.ctx = cv.getContext('2d'); ink.ctx.setTransform(res, 0, 0, res, 0, 0);
+  if (ink.n !== n) ink.redo = [];
+  ink.n = n;
+  ink.items = (slideState(n).draw || []).slice();
+  ink.live.clear();
+  ink.color = COLORS[0]; ink.erase = false;   // every slide starts with the black pen
+  // writing slides open ready to draw
+  if (cfg.drawOn && !ink.on) { ink.on = true; document.body.classList.add('drawing'); }
+  inkRender(); paletteSync();
+  cv.addEventListener('pointerdown', inkDown);
+  cv.addEventListener('pointermove', inkMove);
+  cv.addEventListener('pointerup', inkUp);
+  cv.addEventListener('pointercancel', inkUp);
+}
+
+function inkPt(ev) {
+  const r = ink.cv.getBoundingClientRect();
+  return [Math.round((ev.clientX - r.left) / r.width * CW), Math.round((ev.clientY - r.top) / r.height * CH)];
+}
+function inkDown(ev) {
+  if (!ink.on) return;
+  // right click (or any non-primary button) never draws: it's for advancing slides
+  if (ev.button > 0) return;
+  ev.preventDefault(); ev.stopPropagation();
+  try { ink.cv.setPointerCapture(ev.pointerId); } catch (e) {}
+  const st = { c: ink.color, w: ink.erase ? ERASER : ink.size, e: ink.erase ? 1 : 0, p: [inkPt(ev)] };
+  ink.live.set(ev.pointerId, st);
+  inkRender();
+}
+function inkMove(ev) {
+  const st = ink.live.get(ev.pointerId); if (!st) return;
+  const evs = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
+  evs.forEach(e => { const q = inkPt(e), l = st.p[st.p.length - 1]; if (Math.abs(q[0] - l[0]) + Math.abs(q[1] - l[1]) >= 2) st.p.push(q); });
+  inkRender();
+}
+function inkUp(ev) {
+  const st = ink.live.get(ev.pointerId); if (!st) return;
+  ink.live.delete(ev.pointerId);
+  ink.items.push(st); ink.redo = [];
+  inkCommit();
+}
+function inkCommit() {
+  slideState(ink.n).draw = ink.items; save();
+  inkRender(); paletteSync();
+  const c = SLIDES[ink.n]; if (c && c.onInk) c.onInk();
+}
+function inkStroke(ctx, s) {
+  ctx.globalCompositeOperation = s.e ? 'destination-out' : 'source-over';
+  ctx.strokeStyle = s.c; ctx.fillStyle = s.c; ctx.lineWidth = s.w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const p = s.p;
+  if (p.length === 1) { ctx.beginPath(); ctx.arc(p[0][0], p[0][1], s.w / 2, 0, Math.PI * 2); ctx.fill(); return; }
+  ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
+  for (let i = 1; i < p.length - 1; i++) {
+    const mx = (p[i][0] + p[i + 1][0]) / 2, my = (p[i][1] + p[i + 1][1]) / 2;
+    ctx.quadraticCurveTo(p[i][0], p[i][1], mx, my);
+  }
+  ctx.lineTo(p[p.length - 1][0], p[p.length - 1][1]);
+  ctx.stroke();
+}
+function inkRender() {
+  if (!ink.ctx) return;
+  const ctx = ink.ctx;
+  ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, ink.cv.width, ink.cv.height); ctx.restore();
+  visibleItems().forEach(s => inkStroke(ctx, s));
+  ink.live.forEach(s => inkStroke(ctx, s));
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+const start = parseInt((location.hash || '').slice(1), 10);
+show(isNaN(start) ? 0 : start - 1);
+if (document.fonts) document.fonts.ready.then(fit);
+})();
+</script>
+</body>
+</html>
