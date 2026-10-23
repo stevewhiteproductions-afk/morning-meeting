@@ -1097,7 +1097,7 @@ function nearestCell(cells, x, y) {
   return best;
 }
 // colored cards + title banner are locked so a touch can't lift them above the white ten frames and dots
-SLIDES[10] = { draw: true, snap: isDot, hide: [3, 5, 208], lock: [1, 2, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 20] };
+SLIDES[10] = { draw: true, snap: isDot, hide: [3, 5, 208], lock: [1, 2, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20] };   // 16 = white box under the dot pile (top right)
 // each ten frame shows its running total (10, 20, 30 ...) to its left once all ten squares hold a dot
 SLIDES[10].hook = SLIDES[10].afterDrop = function tenLabels() {
   const s = D.slides[idx], st = slideState(s.n), layer = stage.querySelector('#pieces'); if (!layer) return;
