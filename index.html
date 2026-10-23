@@ -447,7 +447,13 @@ function blinker(st, sl) {
   }, 2000 + Math.random() * 3000);   // every 2-5 seconds
   next();
 }
-Object.keys(LIDS).forEach(n => { SLIDES[n] = Object.assign(SLIDES[n] || {}, { hook: blinker }); });
+// the animal and its framed panel stay put, so dragged clothing always lands on top of them
+Object.keys(LIDS).forEach(n => {
+  const s = D.slides.find(x => x.n === +n), lock = [LIDS[n].k];
+  if (s) { const p = s.els.findIndex(e => e.img && Math.round(e.x) === 53 && Math.round(e.w) === 416); if (p >= 0) lock.push(p); }
+  const cfg = SLIDES[n] = Object.assign(SLIDES[n] || {}, { hook: blinker });
+  cfg.lock = (cfg.lock || []).concat(lock);
+});
 // Popsicle Stick Days (deck 31): instruction on one line inside its pink banner
 SLIDES[31] = { hide: [355], hook: st => fitLine(st.querySelector('#pieces'), { x: 132, y: 117, w: 1176, h: 72 }, 'Drag a popsicle stick to the large box each day to record the days in school.', 40) };
 /* Months & Days (deck 7): the cards are part of the background picture; tap one to bring it up big */
@@ -1493,7 +1499,7 @@ function show(i) {
       if (t.size === 1) { const v = [...t][0]; lk = v[0] === 'u' ? { url: v.slice(1) } : { slide: +v.slice(1) }; }
     }
     if (lk) { el.classList.add('haslink'); el.dataset.link = JSON.stringify(lk); }
-    const pos = e.pastLock ? undefined : st[k];
+    const pos = e.pastLock || (cfg.lock && cfg.lock.includes(k)) ? undefined : st[k];   // locked pieces ignore positions saved before they were locked
     if (isOff) {
       el.dataset.off = '1';
       if (!pos) { el.style.display = 'none'; trayItems.push({ k, e, el }); }
