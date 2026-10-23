@@ -1617,6 +1617,15 @@ stage.addEventListener('pointermove', ev => {
   d.el.classList.add('dragging');
   const k = 0.75 / stage._sc; // css px on screen -> pt
   d.dx = d.dx0 + mx * k; d.dy = d.dy0 + my * k;
+  // keep the piece inside the frame (a piece that starts partly outside, e.g. edge cards, may only move inward)
+  const e = D.slides[idx].els[d.el.dataset.k];
+  if (e) {
+    const s = parseFloat(d.el.style.scale) || 1, hw = e.w * s / 2, hh = e.h * s / 2;
+    const clamp = (v, v0, lo, hi) => Math.min(Math.max(v, Math.min(lo, v0)), Math.max(hi, v0));
+    const cx0 = e.x + e.w / 2, cy0 = e.y + e.h / 2;
+    d.dx = clamp(cx0 + d.dx, cx0 + d.dx0, hw, W - hw) - cx0;
+    d.dy = clamp(cy0 + d.dy, cy0 + d.dy0, hh, H - hh) - cy0;
+  }
   d.el.style.translate = `${pt(d.dx)} ${pt(d.dy)}`;
 });
 function end(ev) {
