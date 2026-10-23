@@ -274,6 +274,34 @@ body.has-tray #trayBtn{display:inline-flex}
 #linkEd .bg-drop b{font:700 17px system-ui;color:#222}
 #linkEd .bg-drop.over{border-color:var(--accent);background:#fff6dc}
 @media (max-width:700px){#linkEd .le-body{grid-template-columns:1fr}}
+/* photo gallery: settings tab */
+#linkEd .ph-body{overflow:auto;padding:12px 22px;display:flex;flex-direction:column;gap:12px;touch-action:pan-y}
+#linkEd .ph-where{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;background:#f3f4f8;border-radius:12px;font:15px system-ui;color:#333}
+#linkEd .ph-where b{color:#1d2330}
+#linkEd .ph-where .ph-sp{flex:1}
+#linkEd .ph-note{font:13px system-ui;color:#777;width:100%}
+#linkEd .ph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+#linkEd .ph-t{position:relative;border-radius:10px;overflow:hidden;background:#e7e9ef;aspect-ratio:4/3}
+#linkEd .ph-t img{display:block;width:100%;height:100%;object-fit:cover}
+#linkEd .ph-t button{position:absolute;right:4px;top:4px;width:30px;height:30px;border:0;border-radius:50%;background:#fff;color:#b33;font:700 15px system-ui;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.25);touch-action:manipulation}
+#linkEd .ph-empty{color:#888;font:15px system-ui;text-align:center;padding:10px}
+/* photo gallery: slide */
+.gal-page{position:absolute;inset:0;background:url(assets/8955b5fb23.webp) center/100% 100%;display:flex;flex-direction:column;align-items:center;padding:20pt 34pt 26pt;gap:16pt;font-family:Arial,Helvetica,sans-serif}
+.gal-title{background:#c1f0f0;padding:12pt 70pt;font-size:34pt}
+.gal-box{flex:1;width:100%;min-height:0;background:#fff;border:2.5pt solid #222;border-radius:14pt;overflow:auto;touch-action:pan-y;padding:16pt;position:relative}
+.gal-grid{display:grid;grid-template-columns:repeat(var(--cols,4),1fr);gap:14pt}
+.gal-tile{appearance:none;border:0;padding:0;border-radius:10pt;overflow:hidden;background:#eee;aspect-ratio:4/3;cursor:pointer;box-shadow:0 4pt 12pt rgba(0,0,0,.15);touch-action:manipulation}
+.gal-tile img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.gal-tile:active{transform:scale(.98)}
+.gal-msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16pt;text-align:center;color:#444;font-size:26pt;padding:30pt}
+.gal-btn{appearance:none;border:2.5pt solid #222;background:#ffd5b6;color:#222;font:700 22pt Arial,Helvetica,sans-serif;padding:12pt 26pt;border-radius:12pt;cursor:pointer;touch-action:manipulation}
+.gal-view{position:absolute;inset:0;z-index:6000;background:rgba(10,10,14,.94);display:flex;align-items:center;justify-content:center;touch-action:none;animation:spotIn .25s ease both}
+.gal-view img{max-width:calc(100% - 200pt);max-height:calc(100% - 100pt);object-fit:contain;border-radius:6pt;box-shadow:0 10pt 40pt rgba(0,0,0,.5);pointer-events:none;user-select:none}
+.gal-nav{position:absolute;top:50%;width:80pt;height:120pt;margin-top:-60pt;border:0;border-radius:16pt;background:rgba(255,255,255,.14);color:#fff;font:700 54pt Arial,sans-serif;cursor:pointer;touch-action:manipulation}
+.gal-nav.p{left:18pt}.gal-nav.n{right:18pt}
+.gal-x,.gal-play{position:absolute;top:16pt;width:60pt;height:60pt;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font:700 28pt Arial,sans-serif;cursor:pointer;touch-action:manipulation}
+.gal-x{right:18pt}.gal-play{right:92pt}
+.gal-count{position:absolute;bottom:10pt;left:0;right:0;text-align:center;color:#ddd;font:20pt Arial,sans-serif;pointer-events:none}
 .el .txt a.lk.menu-lbl{font:400 19pt 'Francois One','Arial Narrow',Arial,sans-serif;color:#3b2600;text-decoration:none;letter-spacing:1.5pt;text-shadow:0 1pt 0 rgba(255,255,255,.55)}
 .md-hot{position:absolute;z-index:900;cursor:pointer;border-radius:4pt;touch-action:manipulation}
 .md-hot:active{background:rgba(255,255,255,.25)}
@@ -379,6 +407,8 @@ D.slides = D.slides.filter(s => !CUT.has(s.n));
   const [sl] = D.slides.splice(i, 1);
   D.slides.splice(D.slides.findIndex(s => s.n === after) + 1, 0, sl);
 });
+// Photo Gallery: an app-only page added at the end (not from the deck)
+D.slides.push({ n: 100, bg: { bg: '#fffaf0' }, decor: [], els: [], title: 'Photo Gallery' });
 const posOf = n => D.slides.findIndex(s => s.n === n);
 function relabel(list) { list.forEach(e => {
   if (e.html && />BACK</.test(e.html)) {   // restyle the old blue underlined BACK link as a MENU label
@@ -690,6 +720,7 @@ const LINK_GROUPS = [
     ['Apple Picking Song – Danny Go', 'https://www.youtube.com/watch?v=pR2zQiE_e1A']] }]
 ];
 SLIDES[3] = { custom: 'links', title: 'Links' };
+SLIDES[100] = { custom: 'gallery', title: 'Photo Gallery' };
 // links can be edited from the Settings button; saved per board, defaults above
 function linkGroups() {
   try { const v = JSON.parse(localStorage.getItem(LINK_KEY) || 'null'); if (Array.isArray(v)) return v; } catch (e) {}
@@ -838,17 +869,203 @@ function buildTeacher(box) {
   };
   refresh();
 }
-function openLinkEditor() {
+/* ---------- Photo Gallery (app slide 100) ----------
+   Photos live in a local folder the teacher picks (Chrome/Edge/Chromebook: File System Access API),
+   or, where that isn't available / not chosen, in this browser's IndexedDB. Uploads are shrunk to board size. */
+const Photos = (() => {
+  const IMG = /\.(jpe?g|png|webp|gif|bmp|avif)$/i, MAX = 1920;
+  const canFolder = typeof window.showDirectoryPicker === 'function';
+  let dbp = null; const urls = {};   // object URLs per view ('slide' / 'settings'), freed on that view's next load
+  const db = () => dbp || (dbp = new Promise((res, rej) => {
+    const r = indexedDB.open('mm-photos', 1);
+    r.onupgradeneeded = () => { r.result.createObjectStore('photos', { keyPath: 'id' }); r.result.createObjectStore('kv'); };
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  }));
+  const tx = async (store, mode, fn) => { const d = await db(); return new Promise((res, rej) => {
+    const t = d.transaction(store, mode), out = fn(t.objectStore(store));
+    t.oncomplete = () => res(out && 'result' in out ? out.result : undefined); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+  }); };
+  const kvGet = k => tx('kv', 'readonly', s => s.get(k)).catch(() => null);
+  const kvSet = (k, v) => tx('kv', 'readwrite', s => v == null ? s.delete(k) : s.put(v, k));
+  const folder = () => canFolder ? kvGet('dir') : Promise.resolve(null);
+  // 'granted' | 'prompt' | 'denied' for the saved folder (prompt = needs one tap to allow again)
+  const access = async (h, ask) => { try { const o = { mode: 'readwrite' }; let p = await h.queryPermission(o); if (p !== 'granted' && ask) p = await h.requestPermission(o); return p; } catch (e) { return 'denied'; } };
+  const persist = () => { try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {} };
+  const shrink = file => new Promise(res => {   // -> JPEG blob no larger than MAX px on its long side (falls back to the original)
+    const u = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const k = Math.min(1, MAX / Math.max(im.naturalWidth, im.naturalHeight)), c = document.createElement('canvas');
+      c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(u); c.toBlob(b => res(b || file), 'image/jpeg', 0.86);
+    };
+    im.onerror = () => { URL.revokeObjectURL(u); res(null); };   // not an image the browser can read
+    im.src = u;
+  });
+  const stamp = () => { const d = new Date(), p = v => String(v).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`; };
+  const uniq = async (h, base) => { for (let i = 0; ; i++) { const nm = base + (i ? `-${i}` : '') + '.jpg'; try { await h.getFileHandle(nm); } catch (e) { return nm; } } };
+  // list -> { where: 'browser' | 'folder', name, need: bool, items: [{ id, url, name }] }   (newest first)
+  async function list(owner) {
+    (urls[owner] || []).forEach(u => URL.revokeObjectURL(u)); const mine = urls[owner] = [];
+    const h = await folder();
+    if (h) {
+      const p = await access(h, false);
+      if (p !== 'granted') return { where: 'folder', name: h.name, need: true, items: [] };
+      const files = [];
+      try { for await (const [nm, e] of h.entries()) if (e.kind === 'file' && IMG.test(nm)) { try { files.push(await e.getFile()); } catch (er) {} } }
+      catch (er) { return { where: 'folder', name: h.name, need: true, items: [] }; }
+      files.sort((a, b) => b.lastModified - a.lastModified || a.name.localeCompare(b.name));
+      return { where: 'folder', name: h.name, need: false, items: files.map(f => { const url = URL.createObjectURL(f); mine.push(url); return { id: f.name, url, name: f.name }; }) };
+    }
+    const recs = (await tx('photos', 'readonly', s => s.getAll()).catch(() => [])) || [];
+    recs.sort((a, b) => b.added - a.added);
+    return { where: 'browser', items: recs.map(r => { const url = URL.createObjectURL(r.blob); mine.push(url); return { id: r.id, url, name: r.name }; }) };
+  }
+  async function add(files) {
+    files = [...files].filter(f => /^image\//.test(f.type) || IMG.test(f.name));
+    const h = await folder(); let n = 0;
+    if (h && await access(h, true) !== 'granted') throw new Error('folder');
+    for (const f of files) {
+      const b = await shrink(f); if (!b) continue;
+      const base = (f.name.replace(/\.[^.]+$/, '').replace(/[^\w\- ]+/g, '').trim() || 'photo').slice(0, 40);
+      if (h) { const fh = await h.getFileHandle(await uniq(h, base), { create: true }); const w = await fh.createWritable(); await w.write(b); await w.close(); }
+      else await tx('photos', 'readwrite', s => s.put({ id: stamp() + '-' + Math.random().toString(36).slice(2, 7), name: base, added: Date.now() + n, blob: b }));
+      n++;
+    }
+    if (n && !h) persist();
+    return n;
+  }
+  async function remove(id) {
+    const h = await folder();
+    if (h) { if (await access(h, true) !== 'granted') throw new Error('folder'); await h.removeEntry(id); }
+    else await tx('photos', 'readwrite', s => s.delete(id));
+  }
+  // pick a folder; photos kept in the browser are moved into it so nothing is lost
+  async function chooseFolder() {
+    const h = await window.showDirectoryPicker({ id: 'mm-photos', mode: 'readwrite', startIn: 'pictures' });
+    if (await access(h, true) !== 'granted') throw new Error('folder');
+    const recs = (await tx('photos', 'readonly', s => s.getAll()).catch(() => [])) || [];
+    for (const r of recs) { const fh = await h.getFileHandle(await uniq(h, r.name || 'photo'), { create: true }); const w = await fh.createWritable(); await w.write(r.blob); await w.close(); }
+    if (recs.length) await tx('photos', 'readwrite', s => s.clear());
+    await kvSet('dir', h);
+    return { name: h.name, moved: recs.length };
+  }
+  const forgetFolder = () => kvSet('dir', null);
+  const allow = async () => { const h = await folder(); return h ? (await access(h, true)) === 'granted' : true; };
+  return { canFolder, list, add, remove, chooseFolder, forgetFolder, allow };
+})();
+function renderGallery() {
+  const page = document.createElement('div'); page.className = 'gal-page';
+  page.innerHTML = '<div class="wf-ban gal-title">Our Photos</div><div class="gal-box"><div class="gal-grid"></div></div>';
+  const box = page.querySelector('.gal-box'), grid = page.querySelector('.gal-grid');
+  const msg = (html, btn, fn) => {
+    const m = document.createElement('div'); m.className = 'gal-msg'; m.innerHTML = html;
+    if (btn) { const b = document.createElement('button'); b.className = 'gal-btn'; b.textContent = btn; b.onclick = fn; m.appendChild(b); }
+    box.appendChild(m);
+  };
+  const load = async () => {
+    box.querySelectorAll('.gal-msg').forEach(m => m.remove()); grid.innerHTML = '';
+    const r = await Photos.list('slide'); if (!page.isConnected) return;
+    if (r.need) return msg(`The photos are in the folder <b>${r.name.replace(/</g, '&lt;')}</b>.`, 'Tap to show them', async () => { if (await Photos.allow()) load(); else toast('The browser did not allow the folder'); });
+    if (!r.items.length) return msg('No photos yet.<br><span style="font-size:20pt;color:#777">Add some in Settings → Photos</span>', 'Open Settings', () => openLinkEditor('photos'));
+    const n = r.items.length; grid.style.setProperty('--cols', n <= 1 ? 1 : n <= 4 ? 2 : n <= 9 ? 3 : n <= 16 ? 4 : 5);
+    r.items.forEach((it, i) => {
+      const b = document.createElement('button'); b.className = 'gal-tile';
+      b.innerHTML = '<img alt="" loading="lazy">'; b.firstChild.src = it.url;
+      b.onclick = () => galView(page, r.items, i);
+      grid.appendChild(b);
+    });
+  };
+  page._reload = load;
+  load();
+  return page;
+}
+// full-screen photo viewer inside the slide: arrows / swipe / keyboard, optional slideshow
+function galView(page, items, i) {
+  const v = document.createElement('div'); v.className = 'gal-view';
+  v.innerHTML = '<img alt=""><button class="gal-nav p">‹</button><button class="gal-nav n">›</button><button class="gal-play" title="Slideshow">▶</button><button class="gal-x" title="Close">✕</button><div class="gal-count"></div>';
+  const img = v.querySelector('img'), cnt = v.querySelector('.gal-count'), play = v.querySelector('.gal-play');
+  let timer = 0;
+  const go = k => { i = (k + items.length) % items.length; img.src = items[i].url; cnt.textContent = `${i + 1} / ${items.length}`; };
+  const stopPlay = () => { clearInterval(timer); timer = 0; play.textContent = '▶'; };
+  const close = () => { stopPlay(); v.remove(); };
+  v._step = d => { stopPlay(); go(i + d); }; v._close = close;
+  v.querySelector('.p').onclick = e => { e.stopPropagation(); v._step(-1); };
+  v.querySelector('.n').onclick = e => { e.stopPropagation(); v._step(1); };
+  v.querySelector('.gal-x').onclick = e => { e.stopPropagation(); close(); };
+  play.onclick = e => { e.stopPropagation(); if (timer) return stopPlay(); play.textContent = '❚❚'; timer = setInterval(() => { if (!v.isConnected) return stopPlay(); go(i + 1); }, 5000); };
+  let sx = null;
+  v.addEventListener('pointerdown', e => { if (e.target === v || e.target === img) sx = e.clientX; });
+  v.addEventListener('pointerup', e => {
+    if (sx == null) return; const dx = e.clientX - sx; sx = null;
+    if (Math.abs(dx) > 50) v._step(dx < 0 ? 1 : -1); else if (e.target === v) close();   // swipe, or tap the dark area to close
+  });
+  go(i); page.appendChild(v);
+}
+function buildPhotoSettings(box) {
+  box.innerHTML = `<div class="ph-where"></div>
+    <label class="bg-drop"><input type="file" accept="image/*" multiple hidden><b>Add photos</b><span>Drag photos here, or tap to choose them (you can pick many at once)</span></label>
+    <div class="ph-grid"></div>`;
+  const where = box.querySelector('.ph-where'), grid = box.querySelector('.ph-grid'), drop = box.querySelector('.bg-drop'), inp = drop.querySelector('input');
+  const refreshSlide = () => { const p = stage.querySelector('.gal-page'); if (p && p._reload) p._reload(); };
+  const draw = async () => {
+    const r = await Photos.list('settings');
+    where.innerHTML = '';
+    const txt = document.createElement('span');
+    txt.innerHTML = r.where === 'folder' ? `Photos are saved in the folder <b></b>` : `Photos are saved in this browser, on this board only.`;
+    if (r.where === 'folder') txt.querySelector('b').textContent = r.name;
+    where.appendChild(txt); where.appendChild(Object.assign(document.createElement('span'), { className: 'ph-sp' }));
+    const btn = (label, fn, on) => { const b = document.createElement('button'); b.className = 'btn' + (on ? ' on' : ''); b.textContent = label; b.onclick = fn; where.appendChild(b); };
+    if (r.need) btn('Allow folder', async () => { if (await Photos.allow()) { draw(); refreshSlide(); } else toast('The browser did not allow the folder'); }, true);
+    if (Photos.canFolder) btn(r.where === 'folder' ? 'Change folder' : 'Choose photo folder', async () => {
+      try { const f = await Photos.chooseFolder(); toast(f.moved ? `Moved ${f.moved} photo${f.moved > 1 ? 's' : ''} into ${f.name}` : `Using folder ${f.name}`); draw(); refreshSlide(); }
+      catch (e) { if (e && e.name !== 'AbortError') toast('That folder can\'t be used — try another one'); }
+    });
+    if (r.where === 'folder') btn('Stop using folder', async () => { await Photos.forgetFolder(); toast('Photos in the folder are kept; new photos save in this browser'); draw(); refreshSlide(); });
+    const note = document.createElement('div'); note.className = 'ph-note';
+    note.textContent = r.where === 'folder' ? 'You can also copy photos into that folder yourself; they show up the next time the gallery opens.'
+      : Photos.canFolder ? 'Choose a photo folder to keep them as normal files (a Google Drive folder works on a Chromebook). Photos already here are moved into it.'
+      : 'This browser can\'t use a folder, so photos stay in the browser. Clearing the browser\'s site data would remove them.';
+    where.appendChild(note);
+    grid.innerHTML = '';
+    if (r.need) return;
+    if (!r.items.length) { grid.innerHTML = '<div class="ph-empty">No photos yet.</div>'; return; }
+    r.items.forEach(it => {
+      const t = document.createElement('div'); t.className = 'ph-t';
+      t.innerHTML = '<img alt=""><button title="Delete">✕</button>'; t.firstChild.src = it.url;
+      t.querySelector('button').onclick = async () => {
+        if (!confirm(r.where === 'folder' ? `Delete "${it.name}" from the folder?` : 'Delete this photo?')) return;
+        try { await Photos.remove(it.id); draw(); refreshSlide(); } catch (e) { toast('Could not delete that photo'); }
+      };
+      grid.appendChild(t);
+    });
+  };
+  const addFiles = async files => {
+    if (!files || !files.length) return;
+    toast(`Adding ${files.length} photo${files.length > 1 ? 's' : ''}…`);
+    try { const n = await Photos.add(files); toast(n ? `Added ${n} photo${n > 1 ? 's' : ''}` : 'Those files aren\'t photos'); }
+    catch (e) { toast(e && e.message === 'folder' ? 'Allow the folder first' : 'Could not save — the board may be out of space'); }
+    draw(); refreshSlide();
+  };
+  inp.onchange = () => { addFiles(inp.files); inp.value = ''; };
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+  drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); addFiles(e.dataTransfer.files); });
+  draw();
+}
+function openLinkEditor(tab) {
   const data = JSON.parse(JSON.stringify(linkGroups()));
   const ov = document.createElement('div'); ov.id = 'linkEd';
   ov.innerHTML = `<div class="le-panel"><header><h2>Settings</h2>
-      <div class="le-tabs"><button class="le-tab on" data-t="links">Links</button><button class="le-tab" data-t="bg">Good Morning background</button><button class="le-tab" data-t="teach">Teach letters</button><button class="le-tab" data-t="help">Help</button></div></header>
+      <div class="le-tabs"><button class="le-tab on" data-t="links">Links</button><button class="le-tab" data-t="bg">Good Morning background</button><button class="le-tab" data-t="teach">Teach letters</button><button class="le-tab" data-t="photos">Photos</button><button class="le-tab" data-t="help">Help</button></div></header>
     <div class="le-pane" data-p="links"><p class="le-hint">Edit names and web addresses, add or remove links.</p><div class="le-body"></div>
       <footer><button class="btn le-reset">Restore original links</button><span style="flex:1"></span><button class="btn le-cancel">Cancel</button><button class="btn on le-save">Save</button></footer></div>
     <div class="le-pane" data-p="bg" hidden><p class="le-hint">Pick a background for the Good Morning slide, or use your own picture. It changes right away.</p><div class="bg-body"></div>
       <footer><span style="flex:1"></span><button class="btn on le-done">Done</button></footer></div>
     <div class="le-pane" data-p="teach" hidden><div class="teach-body"></div>
       <footer><span class="teach-note">Examples are saved on this board.</span><span style="flex:1"></span><button class="btn on le-done">Done</button></footer></div>
+    <div class="le-pane" data-p="photos" hidden><p class="le-hint">Photos for the Photo Gallery slide (the last slide). They show up right away.</p><div class="ph-body"></div>
+      <footer><span style="flex:1"></span><button class="btn on le-done">Done</button></footer></div>
     <div class="le-pane" data-p="help" hidden><div class="help-body">
       <section><h3>Moving around</h3><ul>
         <li><b>Next / previous slide:</b> the arrow buttons in the bottom bar, the keyboard arrow keys, or a <b>right mouse click</b> (one slide per click).</li>
@@ -876,6 +1093,7 @@ function openLinkEditor() {
       <section><h3>Settings</h3><ul>
         <li>Open Settings with the gear on the <b>Links</b> slide (slide 2).</li>
         <li><b>Links:</b> rename, add or remove link buttons. <b>Good Morning background:</b> pick a theme or use your own picture.</li>
+        <li><b>Photos:</b> add or delete photos for the Photo Gallery (last slide). On Chrome, Edge or a Chromebook you can choose a folder so the photos are kept as normal files; otherwise they're saved in this browser.</li>
         <li>Settings are saved on this board's browser only.</li></ul></section>
     </div><footer><button class="btn le-forget">Forget learned handwriting</button><span style="flex:1"></span><button class="btn on le-done">Done</button></footer></div></div>`;
   ov.querySelectorAll('.le-tab').forEach(t => t.onclick = () => {
@@ -886,6 +1104,8 @@ function openLinkEditor() {
   buildTeacher(ov.querySelector('.teach-body'));
   ov.querySelector('.le-forget').onclick = () => { handForget(); toast('Learned handwriting cleared'); };
   buildBgPicker(ov.querySelector('.bg-body'));
+  buildPhotoSettings(ov.querySelector('.ph-body'));
+  if (typeof tab === 'string') { const t = ov.querySelector(`.le-tab[data-t="${tab}"]`); if (t) t.click(); }
   const body = ov.querySelector('.le-body');
   const draw = () => {
     body.innerHTML = '';
@@ -1486,6 +1706,7 @@ function show(i) {
   if (cfg.custom === 'feelings') layer.appendChild(renderFeelings());
   if (cfg.custom === 'solar') layer.appendChild(renderSolar());
   if (cfg.custom === 'weatherfeel') layer.appendChild(renderWeatherFeel());
+  if (cfg.custom === 'gallery') layer.appendChild(renderGallery());
   const st = slideState(n);
   const trayItems = [];
   s.els.forEach((e, k) => {
@@ -1833,6 +2054,9 @@ addEventListener('keydown', e => {
   if (document.body.classList.contains('can-draw') && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); $(e.shiftKey ? 'redoBtn' : 'undoBtn').click(); return; }
   if (document.body.classList.contains('can-draw') && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') { e.preventDefault(); $('redoBtn').click(); return; }
   if ($('menu').classList.contains('open')) { if (e.key === 'Escape') $('menu').classList.remove('open'); return; }
+  if (document.getElementById('linkEd')) return;   // settings open: keys don't change slides
+  const gv = stage.querySelector('.gal-view');   // photo viewer open: arrows page photos, Esc closes
+  if (gv) { if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); gv._step(1); } else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); gv._step(-1); } else if (e.key === 'Escape') gv._close(); return; }
   if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); show(idx + 1); }
   else if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); show(idx - 1); }
   else if (e.key === 'Home') show(0);
