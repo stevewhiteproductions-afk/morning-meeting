@@ -552,7 +552,8 @@ function fitLine(layer, box, text, maxPt) {
 // Feelings Thermometer (deck 48): tidy instruction + a slider on the arrow line that lights up the face above it
 const THERM = { faces: [309.5, 473, 636, 799, 962, 1125.5], fy: 411.5, fd: 162, ly: 571, x0: 230, x1: 1205,
   colors: ['#18a83a', '#4cd11a', '#f2c500', '#f39a12', '#ef3b22', '#b3200f'] };
-SLIDES[48] = { hide: [4], title: 'Feelings Thermometer', hook: () => {
+SLIDES[48] = { hide: [4], lock: [1, 2, 3, 5, 6, 7],   // only the slider handle moves
+  title: 'Feelings Thermometer', hook: () => {
   const layer = stage.querySelector('#pieces'), st = slideState(48);
   fitLine(layer, { x: 140, y: 135, w: 1160, h: 73 }, 'Look at the thermometer and think about where your feelings are right now.', 30);
   const glows = THERM.faces.map((x, i) => {
